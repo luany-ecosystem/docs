@@ -32,11 +32,11 @@
 | Pacote | Nome Composer | Descrição | Versão |
 |--------|---------------|-----------|--------|
 | **Core** | `luany/core` | HTTP Request/Response, Router, Pipeline de Middleware, CORS, Rate Limiting | v1.0.0 |
-| **Database** | `luany/database` | Conexão PDO, QueryBuilder Fluente, ORM Active Record, Relações, Migrações | v1.0.0 |
+| **Database** | `luany/database` | Conexão PDO, QueryBuilder Fluente, ORM Active Record, Relações, Migrações, Seeders | v1.1.0 |
 | **Framework** | `luany/framework` | Container IoC, Kernel, Service Providers, Config, Session, Validator, i18n | v1.0.0 |
 | **LTE** | `luany/lte` | Motor de templates compilado por AST (ficheiros `.lte`) | v1.0.0 |
-| **CLI** | `luany/cli` | Ferramenta `luany`, scaffolding CRUD completo, migrações, LDE | v1.0.2 |
-| **Skeleton** | `luany/luany` | Template de aplicação pronto a usar | v1.1.0 |
+| **CLI** | `luany/cli` | Ferramenta `luany`, scaffolding CRUD completo, migrações, seeders, LDE | v1.1.0 |
+| **Skeleton** | `luany/luany` | Template de aplicação pronto a usar | v1.1.2 |
 
 ### Grafo de Dependências
 
@@ -139,6 +139,7 @@ my-app/
 │   └── mail.php           # Configuração de e-mail
 ├── database/
 │   └── migrations/        # Migrações com timestamp
+│   └── seeders/           # Semeadores
 ├── lang/                  # Ficheiros de tradução (en.php, pt.php)
 ├── public/
 │   ├── index.php          # Front controller
@@ -1064,6 +1065,7 @@ O DevMiddleware intercepta respostas HTML e injeta o cliente LDE antes do `</bod
 | `luany make:controller <n>` | `app/Controllers/{Name}Controller.php` |
 | `luany make:model <n>` | `app/Models/{Name}.php` |
 | `luany make:migration <n>` | `database/migrations/{timestamp}_{name}.php` |
+| `luany make:seeder <n>` | `database/seeders/{Name}Seeder.php` |
 | `luany make:middleware <n>` | `app/Http/Middleware/{Name}Middleware.php` |
 | `luany make:provider <n>` | `app/Providers/{Name}ServiceProvider.php` |
 | `luany make:view <n> [tipo]` | `views/{path}.lte` (tipos: `page`, `component`, `layout`) |
@@ -1123,6 +1125,15 @@ luany make:middleware Auth/Token     # → app/Http/Middleware/Auth/TokenMiddlew
 | `luany migrate:rollback` | Reverter último batch |
 | `luany migrate:fresh` | Eliminar todas as tabelas + re-executar todas |
 | `luany migrate:status` | Mostrar tabela de estado das migrações |
+
+### Seeders
+
+| Comando | Descrição |
+|---------|-----------|
+| `luany make:seeder <Name>` | Criar um novo seeder |
+| `luany db:seed` | Correr o `DatabaseSeeder` (ponto de entrada) |
+| `luany db:seed --class=Name` | Correr um seeder específico |
+| `luany migrate:fresh --seed` | Eliminar tabelas, re-migrar e correr seeders |
 
 ---
 
@@ -1368,4 +1379,4 @@ composer update luany/cli
 
 ---
 
-*Última actualização: 2026-03-28 — luany/cli v1.0.2 · luany/luany v1.1.0*
+*Última actualização: 2026-04-11 — luany/cli v1.1.0 · luany/luany v1.1.2 · luany/database v1.1.0*

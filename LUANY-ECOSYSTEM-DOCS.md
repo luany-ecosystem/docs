@@ -32,11 +32,11 @@
 | Package | Composer Name | Description | Version |
 |---------|---------------|-------------|---------|
 | **Core** | `luany/core` | HTTP Request/Response, Router, Middleware Pipeline, CORS, Rate Limiting | v1.0.0 |
-| **Database** | `luany/database` | PDO Connection, Fluent QueryBuilder, Active Record ORM, Relations, Migrations | v1.0.0 |
+| **Database** | `luany/database` | PDO Connection, Fluent QueryBuilder, Active Record ORM, Relations, Migrations, Seeders | v1.1.0 |
 | **Framework** | `luany/framework` | Application container, Kernel, Service Providers, Config, Session, Validator, i18n | v1.0.0 |
 | **LTE** | `luany/lte` | AST-compiled template engine (`.lte` files) | v1.0.0 |
-| **CLI** | `luany/cli` | `luany` command-line tool, full CRUD scaffolding, migrations, LDE | v1.0.2 |
-| **Skeleton** | `luany/luany` | Ready-to-use application template | v1.1.0 |
+| **CLI** | `luany/cli` | `luany` command-line tool, full CRUD scaffolding, migrations, seeders, LDE | v1.1.0 |
+| **Skeleton** | `luany/luany` | Ready-to-use application template | v1.1.2 |
 
 ### Dependency Graph
 
@@ -138,7 +138,8 @@ my-app/
 │   ├── app.php            # Application config
 │   └── mail.php           # Mail config
 ├── database/
-│   └── migrations/        # Timestamped migrations
+│   ├── migrations/        # Timestamped migrations
+│   └── seeders/           # Database seeders
 ├── lang/                  # Translation files (en.php, pt.php)
 ├── public/
 │   ├── index.php          # Front controller
@@ -671,6 +672,43 @@ class CreateUsersTable extends Migration
 }
 ```
 
+### 5.9 Seeder System
+
+Seeders live in `database/seeders/` and populate the database with initial or test data. Run with `luany db:seed`.
+
+```php
+use Luany\Database\Seeder\Seeder;
+
+// Entry point — chains all seeders
+class DatabaseSeeder extends Seeder
+{
+    public function run(\PDO $pdo): void
+    {
+        $this->call(UserSeeder::class);
+    }
+}
+
+// Individual seeder
+class UserSeeder extends Seeder
+{
+    public function run(\PDO $pdo): void
+    {
+        $stmt = $pdo->prepare("INSERT IGNORE INTO `users` (`name`, `email`) VALUES (?, ?)");
+        $stmt->execute(['António Ngola', 'antonio@example.com']);
+    }
+}
+```
+
+**SeederRunner** — used internally by the CLI:
+
+```php
+use Luany\Database\Seeder\SeederRunner;
+
+$runner = new SeederRunner($pdo, '/path/to/database/seeders');
+$runner->run('DatabaseSeeder');           // default entry point
+$runner->run('UserSeeder');               // specific seeder
+```
+
 ---
 
 ## 6. luany/framework — Application Layer
@@ -1127,6 +1165,7 @@ DevMiddleware intercepts HTML responses and injects the LDE browser client befor
 | `luany make:request <Name>` | `app/Http/Requests/{Name}Request.php` |
 | `luany make:test <Name>` | `tests/{Name}Test.php` |
 | `luany make:feature <Name> [fields...]` | Model + Controller + Migration + 4 Views + Routes |
+| `luany make:seeder <Name>` | `database/seeders/{Name}Seeder.php` |
 
 **`luany make:feature`** — interactive or inline:
 
@@ -1179,7 +1218,17 @@ luany make:middleware Auth/Token     # → app/Http/Middleware/Auth/TokenMiddlew
 | `luany migrate` | Run all pending migrations |
 | `luany migrate:rollback` | Rollback last batch |
 | `luany migrate:fresh` | Drop all tables + re-run all |
+| `luany migrate:fresh --seed` | Drop all tables + re-run all + seed |
 | `luany migrate:status` | Show migration status table |
+
+### Seeders
+
+| Command | Description |
+|---------|-------------|
+| `luany make:seeder <Name>` | Scaffold a new seeder class |
+| `luany db:seed` | Run `DatabaseSeeder` (default entry point) |
+| `luany db:seed --class=Name` | Run a specific seeder |
+| `luany migrate:fresh --seed` | Drop all tables, re-migrate, then seed |
 
 ---
 
@@ -1486,4 +1535,4 @@ composer update luany/cli
 
 ---
 
-*Last updated: 2026-03-28 — luany/cli v1.0.2 · luany/luany v1.1.0*
+*Last updated: 2026-04-11 — luany/cli v1.1.0 · luany/luany v1.1.2 · luany/database v1.1.0*
