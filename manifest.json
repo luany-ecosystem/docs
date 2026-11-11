@@ -1,0 +1,56 @@
+{
+  "version": "1.x",
+  "locales": { "en": "English", "pt": "Português" },
+  "sections": [
+    { "id": "getting-started", "title": { "en": "Getting Started", "pt": "Primeiros passos" }, "pages": [
+      { "slug": "installation",        "title": { "en": "Installation",        "pt": "Instalação" } },
+      { "slug": "configuration",       "title": { "en": "Configuration",       "pt": "Configuração" } },
+      { "slug": "directory-structure", "title": { "en": "Directory Structure", "pt": "Estrutura de diretórios" } },
+      { "slug": "request-lifecycle",   "title": { "en": "Request Lifecycle",   "pt": "Ciclo de vida do pedido" } }
+    ]},
+    { "id": "basics", "title": { "en": "The Basics", "pt": "Fundamentos" }, "pages": [
+      { "slug": "routing",         "title": { "en": "Routing",               "pt": "Rotas" } },
+      { "slug": "middleware",      "title": { "en": "Middleware",            "pt": "Middleware" } },
+      { "slug": "controllers",     "title": { "en": "Controllers",           "pt": "Controllers" } },
+      { "slug": "requests",        "title": { "en": "Requests & Responses",  "pt": "Pedidos e respostas" } },
+      { "slug": "validation",      "title": { "en": "Validation",            "pt": "Validação" } },
+      { "slug": "csrf",            "title": { "en": "CSRF Protection",       "pt": "Proteção CSRF" } },
+      { "slug": "session",         "title": { "en": "Session & Flash",       "pt": "Sessão e mensagens flash" } },
+      { "slug": "errors",          "title": { "en": "Error Handling",        "pt": "Tratamento de erros" } },
+      { "slug": "logging",         "title": { "en": "Logging",               "pt": "Logging" } },
+      { "slug": "localization",    "title": { "en": "Localization",          "pt": "Localização" } },
+      { "slug": "helpers",         "title": { "en": "Helpers",               "pt": "Helpers" } }
+    ]},
+    { "id": "views", "title": { "en": "Views (LTE)", "pt": "Vistas (LTE)" }, "pages": [
+      { "slug": "lte-syntax",        "title": { "en": "Template Syntax",          "pt": "Sintaxe dos templates" } },
+      { "slug": "lte-layouts",       "title": { "en": "Layouts & Components",     "pt": "Layouts e componentes" } },
+      { "slug": "lte-directives",    "title": { "en": "Directives Reference",     "pt": "Referência de diretivas" } },
+      { "slug": "lte-assets",        "title": { "en": "Assets & Stacks",          "pt": "Assets e stacks" } },
+      { "slug": "lte-custom",        "title": { "en": "Custom Directives",        "pt": "Diretivas próprias" } },
+      { "slug": "lte-errors",        "title": { "en": "Template Errors",          "pt": "Erros de template" } }
+    ]},
+    { "id": "database", "title": { "en": "Database", "pt": "Base de dados" }, "pages": [
+      { "slug": "database",          "title": { "en": "Getting Started",          "pt": "Introdução" } },
+      { "slug": "query-builder",     "title": { "en": "Query Builder",            "pt": "Query builder" } },
+      { "slug": "models",            "title": { "en": "Models",                   "pt": "Modelos" } },
+      { "slug": "relationships",     "title": { "en": "Relationships",            "pt": "Relações" } },
+      { "slug": "migrations",        "title": { "en": "Migrations & Schema",      "pt": "Migrations e schema" } },
+      { "slug": "seeding",           "title": { "en": "Seeding",                  "pt": "Seeders" } },
+      { "slug": "pagination",        "title": { "en": "Pagination",               "pt": "Paginação" } }
+    ]},
+    { "id": "cli", "title": { "en": "CLI", "pt": "CLI" }, "pages": [
+      { "slug": "cli",               "title": { "en": "Commands",                 "pt": "Comandos" } },
+      { "slug": "make-feature",      "title": { "en": "make:feature",             "pt": "make:feature" } },
+      { "slug": "dev-server",        "title": { "en": "Dev Server & Live Reload", "pt": "Servidor de desenvolvimento" } },
+      { "slug": "view-check",        "title": { "en": "view:check",               "pt": "view:check" } }
+    ]},
+    { "id": "advanced", "title": { "en": "Advanced", "pt": "Avançado" }, "pages": [
+      { "slug": "container",         "title": { "en": "Service Container",        "pt": "Container de serviços" } },
+      { "slug": "providers",         "title": { "en": "Service Providers",        "pt": "Service providers" } },
+      { "slug": "psr",               "title": { "en": "PSR Interoperability",     "pt": "Interoperabilidade PSR" } },
+      { "slug": "security",          "title": { "en": "Security",                 "pt": "Segurança" } },
+      { "slug": "deployment",        "title": { "en": "Deployment",               "pt": "Deploy" } },
+      { "slug": "vscode",            "title": { "en": "VS Code Extension",        "pt": "Extensão do VS Code" } }
+    ]}
+  ]
+}
