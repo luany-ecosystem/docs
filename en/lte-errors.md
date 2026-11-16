@@ -134,7 +134,7 @@ Compiled templates are plain PHP files named by a SHA-256 hash.
 | Aspect | Behaviour |
 | --- | --- |
 | Location | `storage/cache/views` in a Luany app. A standalone `Engine` without `$cachePath` uses a private per-user directory (`sys_get_temp_dir()/lte_cache_<uid>`, mode `0700`) and refuses one that is a symlink or owned by another user. |
-| Cache key | Engine version (`Engine::VERSION`, currently `1.2.0`) + registered custom directive names + view path. Upgrading LTE or registering a directive never reuses stale code. |
+| Cache key | Engine version (`Engine::VERSION`, the installed LTE version) + registered custom directive names + view path. Upgrading LTE or registering a directive never reuses stale code. |
 | Freshness | With `autoReload` off, a view recompiles when its source is at least as new as its compiled file (same-second edits are detected). With `autoReload` on (`APP_DEBUG=true` in the framework), every render recompiles. |
 | Atomic writes | Each compile writes a temporary file and `rename()`s it into place, so concurrent requests never read a half-written file. OPcache is invalidated for the new file. |
 

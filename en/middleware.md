@@ -104,7 +104,7 @@ Instances cannot be stored in the [route cache](routing.md#route-caching). When 
 
 ## PSR-15 middleware
 
-Route middleware may also implement `Psr\Http\Server\MiddlewareInterface`, given as an instance or a class name. Luany converts the request to PSR-7 and back automatically:
+Route and global middleware may also implement `Psr\Http\Server\MiddlewareInterface`, given as an instance or a class name. Luany converts the request to PSR-7 and back automatically:
 
 ```php
 Route::get('/api/data', [ApiController::class, 'data'])
@@ -113,22 +113,28 @@ Route::get('/api/data', [ApiController::class, 'data'])
 
 The bridge needs a PSR-7 implementation: `nyholm/psr7` and `guzzlehttp/psr7` are detected automatically. See [PSR Interoperability](psr.md).
 
-The Kernel's global list only accepts Luany middleware. Wrap a PSR-15 middleware in `Luany\Core\Psr\Psr15Middleware` to use it globally:
+In the Kernel's global list, PSR-15 middleware is accepted like Luany middleware — the Kernel wraps it in `Luany\Core\Psr\Psr15Middleware` for you. List it by class name, or add an instance in the constructor (PHP does not allow `new` in a property default):
 
 ```php
-use Luany\Core\Psr\Psr15Middleware;
 use Luany\Framework\Application;
 
 class Kernel extends BaseKernel
 {
+    protected array $middleware = [
+        CsrfMiddleware::class,
+        \Middlewares\ResponseTime::class,   // PSR-15, built through the container
+    ];
+
     public function __construct(Application $app)
     {
         parent::__construct($app);
 
-        $this->middleware[] = new Psr15Middleware(new \Middlewares\ResponseTime());
+        $this->middleware[] = new \Middlewares\TrailingSlash(false);   // PSR-15 instance with options
     }
 }
 ```
+
+PSR-15 entries need `luany/core` 1.3 or later. An entry that implements neither interface makes every request fail with a `RuntimeException` (a 500 error).
 
 ## CORS
 

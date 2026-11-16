@@ -63,7 +63,7 @@ O `config/app.php` do skeleton lista apenas o inglês. Adicione todos os idiomas
 'supported_locales' => ['en', 'pt'],
 ```
 
-> **Aviso** O idioma predefinido tem de constar de `supported_locales`. Os idiomas fora da lista são rejeitados, e um idioma predefinido não suportado deixa o tradutor sem idioma ativo.
+Os idiomas fora de `supported_locales` são rejeitados: o `setLocale()` ignora-os. Inclua também aí o idioma predefinido — se faltar, o tradutor arranca com o idioma de recurso quando este é suportado; caso contrário, com o primeiro idioma suportado.
 
 ## Detetar o idioma em cada pedido
 
@@ -83,8 +83,8 @@ Em cada pedido, escolhe o primeiro idioma suportado de entre:
 
 1. o cookie `app_locale` — a escolha explícita do utilizador;
 2. o cabeçalho `Accept-Language` — a preferência do browser, por qualidade (`pt-PT,pt;q=0.9,en;q=0.8` → `pt`; as entradas com `q=0` são ignoradas);
-3. a variável de ambiente `APP_LOCALE`;
-4. `'en'`.
+3. o idioma predefinido — `config('app.locale')` e depois a variável de ambiente `APP_LOCALE`, a mesma definição que o tradutor usa;
+4. `'en'`, quando é suportado — caso contrário, o tradutor mantém o idioma com que arrancou.
 
 Só é usada a subetiqueta de idioma principal: tanto `pt-BR` como `pt-PT` selecionam `pt`.
 

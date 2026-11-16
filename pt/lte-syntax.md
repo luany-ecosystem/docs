@@ -90,6 +90,8 @@ return view('pages.about', [
 
 Implemente `Htmlable` nos seus próprios value objects (um renderizador de Markdown, um widget de paginação) para que possam renderizar o seu markup através de `{{ }}`.
 
+Os [slots](lte-layouts.md#componentes) dos componentes também são `HtmlString`, pelo que `{{ $slot }}` os imprime sem escape. `HtmlString::isEmpty()` / `isNotEmpty()` indicam se o HTML envolvido está vazio ou contém apenas espaços em branco.
+
 ## Comentários
 
 Os comentários `{{-- --}}` são removidos em tempo de compilação e nunca chegam ao HTML:

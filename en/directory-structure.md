@@ -79,7 +79,10 @@ Files written by the framework at runtime. The web server must be able to write 
 | --- | --- |
 | `storage/cache/views` | The LTE engine (compiled templates); cleared with `luany cache:clear` |
 | `storage/logs` | The [logger](logging.md) — `luany-YYYY-MM-DD.log` |
+| `storage/cache/routes.php` | Your deploy script, if you use the [route cache](routing.md#using-the-cache-in-the-kernel) — the Kernel reads it when present |
 | `storage/sessions` | [Session](session.md) files — created on first use with `0700` permissions |
+
+Compiled views, logs and session files are git-ignored by the skeleton (`storage/sessions/` since skeleton 1.4.2).
 
 ## `views`
 

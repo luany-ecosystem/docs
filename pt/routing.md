@@ -38,6 +38,8 @@ Uma ação é uma closure ou um par `[Controller::class, 'method']`. Consulte [C
 
 Os pedidos `HEAD` são respondidos pela rota `GET` correspondente, sem corpo. As rotas são avaliadas pela ordem de registo; a primeira que corresponder é a escolhida.
 
+Os URIs podem conter pontos, como em `Route::get('/sitemap.xml', ...)` ou `/feed.json`. Correspondem da mesma forma com `luany serve` / `luany dev` e atrás do Apache ou do Nginx.
+
 ### Valores devolvidos
 
 | A ação devolve | Resposta |
@@ -60,6 +62,16 @@ Route::get('/users/{user}/posts/{post}', [UserPostController::class, 'show']);
 ```
 
 Os parâmetros são passados à ação **pelo nome**, por isso a ordem em que aparecem na assinatura não importa. Os nomes dos parâmetros têm de começar por uma letra ou um underscore. Parâmetros opcionais e restrições com expressões regulares não são suportados — valide o valor na ação e use `abort(404)` quando for inválido.
+
+### Parâmetros numéricos
+
+Um parâmetro cujo argumento na ação é declarado `int` ou `float` é convertido para esse tipo. Um segmento que não seja um número válido responde com **404**, antes de o middleware de rota ser executado:
+
+```php
+Route::get('/posts/{id}', fn (int $id) => "Post #{$id}");   // /posts/7 → 7, /posts/abc → 404
+```
+
+Consulte [Controllers](controllers.md#tipos-escalares) para as regras exatas.
 
 ### Method spoofing em formulários
 
@@ -219,4 +231,33 @@ Uma tabela de rotas só pode ir para cache quando todas as ações e todo o midd
 
 O `Route::cache()` lança uma `RuntimeException` com a lista de todas as rotas problemáticas, em vez de as descartar silenciosamente.
 
-> **Nota** O Kernel HTTP carrega os ficheiros de rotas em cada pedido e não lê nenhuma cache de rotas. A API de cache destina-se a front controllers personalizados e a workers de longa duração que controlam o router diretamente.
+### Usar a cache no Kernel
+
+Quando `storage/cache/routes.php` existe, o Kernel HTTP carrega as rotas a partir dele e **não executa os ficheiros de rotas**. Gere-o depois de carregar os ficheiros de rotas — por exemplo, com um pequeno script executado em cada deploy:
+
+```php
+<?php
+// bin/route-cache.php
+use Luany\Core\Routing\Route;
+use Luany\Framework\Http\Kernel;
+
+$app    = require __DIR__ . '/../bootstrap/app.php';
+$kernel = $app->make(Kernel::class);
+$path   = $kernel->routeCachePath();       // base_path('storage/cache/routes.php')
+
+Route::clearCache($path);                  // para que boot() leia routes/*.php e não uma cache antiga
+$kernel->boot();
+Route::cache($path);
+
+echo "Routes cached: {$path}\n";
+```
+
+```bash
+php bin/route-cache.php
+```
+
+- Um ficheiro de cache é usado até ser apagado: volte a gerá-lo em cada deploy e execute `Route::clearCache()` (ou apague o ficheiro) sempre que as rotas mudarem. Não o crie em desenvolvimento.
+- Os resolvers de `Route::bind()` são closures e não vão para a cache. Quando usar a cache, registe-os no método `boot()` de um service provider em vez de num ficheiro de rotas.
+- Para mudar a localização, redefina `protected string $routeCacheFile` em `App\Http\Kernel` (relativo à raiz do projeto); defina-o como `''` para desativar a cache.
+
+A CLI não tem um comando `route:cache`. Consulte [Deploy](deployment.md#rotas).

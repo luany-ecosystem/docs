@@ -1,6 +1,6 @@
 # VS Code Extension
 
-The official **Luany LTE** extension for Visual Studio Code adds syntax highlighting, snippets, a file icon and live error diagnostics for `.lte` templates. This page covers installation, features and settings.
+The official **Luany LTE** extension for Visual Studio Code adds syntax highlighting, snippets, a file icon and live error diagnostics for `.lte` templates. The file icon and the diagnostics were added in version 1.2. This page covers installation, features and settings.
 
 ## Installation
 
@@ -92,7 +92,7 @@ When you open or save a `.lte` file, the extension runs [`luany view:check`](vie
 - misplaced `@else`, `@elseif` or `@empty`, and directives missing their arguments;
 - PHP syntax errors inside `{{ }}`, `{!! !!}`, `@php` and directive arguments.
 
-Diagnostics cover the whole project, not only the open file, and are replaced on every run. Runs are debounced (300 ms) and never overlap for the same project.
+Diagnostics cover the whole project, not only the open file, and are replaced on every run. Runs are debounced (300 ms) and never overlap for the same project; a save made while a check is running triggers a fresh check once it finishes.
 
 To validate on demand, open the Command Palette and run **Luany LTE: Validate views**. It reports `all views OK` or the number of problems in the status bar.
 
@@ -107,7 +107,7 @@ The project root is the nearest folder above the file that contains `bootstrap/a
 2. `vendor/bin/luany` in the project (run with `php`).
 3. `luany` on your `PATH`.
 
-If no CLI is found, the extension shows a one-time warning with the install command. Other failures are written to the **Luany LTE** output channel.
+If no CLI is found, the extension shows a one-time warning with the install command. If `view:check` fails without results — an old CLI, an application that cannot boot, a timeout (30 s) — the existing diagnostics are kept and the reason is written to the **Luany LTE** output channel.
 
 ### Settings
 

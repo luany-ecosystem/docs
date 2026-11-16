@@ -79,7 +79,10 @@ Ficheiros escritos pelo framework em tempo de execução. O servidor web tem de 
 | --- | --- |
 | `storage/cache/views` | O motor LTE (templates compilados); limpo com `luany cache:clear` |
 | `storage/logs` | O [logger](logging.md) — `luany-YYYY-MM-DD.log` |
+| `storage/cache/routes.php` | O seu script de deploy, se usar a [cache de rotas](routing.md#usar-a-cache-no-kernel) — o Kernel lê-o quando existe |
 | `storage/sessions` | Ficheiros de [sessão](session.md) — criada na primeira utilização com permissões `0700` |
+
+As vistas compiladas, os logs e os ficheiros de sessão são ignorados pelo git no skeleton (`storage/sessions/` desde o skeleton 1.4.2).
 
 ## `views`
 

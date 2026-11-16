@@ -62,6 +62,7 @@ Anonymous classes avoid name collisions. Named classes still work: the class nam
 | --- | --- |
 | `luany migrate` | Run all pending migrations as a new batch. |
 | `luany migrate:rollback` | Roll back the last batch. |
+| `luany migrate:rollback --step=N` | Roll back the last N migrations, newest first, across batches (luany/cli 1.6 and luany/database 1.8 or newer). |
 | `luany migrate:status` | List migrations with ran / pending and their batch. |
 | `luany migrate:fresh` | Drop **all** tables and re-run every migration. Asks for confirmation; `--force` skips it, `--seed` runs `DatabaseSeeder` afterwards. |
 
@@ -77,13 +78,15 @@ use Luany\Database\Migration\MigrationRunner;
 $runner = new MigrationRunner(app('db'), base_path('database/migrations'));
 
 $runner->run(fn (string $name, string $status) => print("[{$status}] {$name}\n"));
-$runner->rollback(steps: 2);
+$runner->rollback(steps: 2);   // last two batches
+$runner->rollbackLast(3);       // last three migrations, any batch
 ```
 
 | Method | Returns |
 | --- | --- |
 | `run(?callable $output = null)` | Number of migrations run |
-| `rollback(?callable $output = null, int $steps = 1)` | Number rolled back |
+| `rollback(?callable $output = null, int $steps = 1)` | Number rolled back (the last `$steps` batches) |
+| `rollbackLast(int $migrations, ?callable $output = null)` | Number rolled back (the last N migrations, newest first, across batches; throws `\InvalidArgumentException` below 1) |
 | `reset(?callable $output = null)` | Roll back every batch |
 | `pending(): array` | Names not yet run |
 | `status(): array` | `[['name' => …, 'ran' => bool, 'batch' => ?int], …]` |
@@ -197,7 +200,7 @@ $table->foreign('team_id')->references('id')->on('teams')->onDelete('cascade');
 
 Defaults are `ON DELETE RESTRICT ON UPDATE CASCADE`.
 
-> **Note** SQLite enforces foreign keys only when `PRAGMA foreign_keys = ON` is set on the connection. The connection does not enable it for you.
+> **Note** On SQLite, `Connection::make()` and the `luany` commands turn on `PRAGMA foreign_keys = ON`, so constraints and `ON DELETE` actions are enforced as on MySQL and PostgreSQL. Opt out with `'foreign_keys' => false` (see [Creating a connection](database.md#creating-a-connection)). `migrate:fresh` switches the pragma off while it drops the tables.
 
 ## Altering tables
 

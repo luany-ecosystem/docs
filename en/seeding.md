@@ -58,14 +58,13 @@ class DatabaseSeeder extends Seeder
 
 ## Using the query builder and models
 
-The CLI runs seeders without booting the application, so no model connection is registered. Wrap the PDO yourself:
+The CLI runs seeders without booting the application, but it gives your models its own connection (`Model::setConnection()`), so models work as in the application. For the query builder, wrap the PDO:
 
 ```php
 <?php
 
 use App\Models\Post;
 use Luany\Database\Connection;
-use Luany\Database\Model;
 use Luany\Database\QueryBuilder;
 use Luany\Database\Seeder\Seeder;
 
@@ -73,10 +72,7 @@ class PostSeeder extends Seeder
 {
     public function run(\PDO $pdo): void
     {
-        $connection = Connection::fromPdo($pdo);
-        Model::setConnection($connection);
-
-        $db = new QueryBuilder($connection);
+        $db = new QueryBuilder(Connection::fromPdo($pdo));
         $db->table('categories')->insert([
             ['name' => 'News',   'slug' => 'news'],
             ['name' => 'Guides', 'slug' => 'guides'],
@@ -89,7 +85,11 @@ class PostSeeder extends Seeder
 }
 ```
 
-Models then apply casts, timestamps and events as usual. For idempotent seeders, use `Model::firstOrCreate()` or [`upsert()`](query-builder.md#upserts) so running them twice does not duplicate rows.
+Models apply casts, timestamps and events as usual. For idempotent seeders, use `Model::firstOrCreate()` or [`upsert()`](query-builder.md#upserts) so running them twice does not duplicate rows.
+
+On SQLite the CLI enables foreign keys (`PRAGMA foreign_keys = ON`), like the application, so seed the referenced tables (categories, users) before the rows that point to them — `call()` runs seeders in the order given.
+
+> **Note** The model connection is bound automatically by luany/cli 1.6 or newer (`db:seed`, `migrate:fresh --seed` and the other `migrate*` commands). With an older CLI, call `Model::setConnection(Connection::fromPdo($pdo))` at the start of `run()`.
 
 ## Running seeders
 

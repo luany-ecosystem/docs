@@ -78,7 +78,7 @@ LOG_LEVEL=warning
 
 ## Exceptions
 
-The [error handler](errors.md#reporting) logs every reported exception at `error` level with the exception in the context. Expected HTTP outcomes listed in the Handler's `$dontReport` are not logged.
+The [error handler](errors.md#reporting) logs every reported exception at `error` level with the exception in the context. Expected HTTP outcomes listed in the Handler's `$dontReport` (404, 405, `abort()`, validation errors) and `findOrFail()` misses are not logged.
 
 ## Using another logger
 

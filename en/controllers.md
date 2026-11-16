@@ -46,6 +46,8 @@ Route::get('/posts', [PostController::class, 'index']);
 Route::post('/posts', [PostController::class, 'store']);
 ```
 
+A controller name without a namespace (`['PostController', 'index']`) is looked up in `App\Controllers\` first, then in `App\Http\Controllers\`. Prefer `PostController::class` with a `use` statement, so your editor and static analysis can follow the reference.
+
 > **Note** Keep middleware out of controllers. Attach it to the route or the Kernel — see [Middleware](middleware.md).
 
 ## Return values
@@ -101,17 +103,20 @@ Older positional signatures keep working: `show($request, $id)` still receives t
 
 ### Scalar types
 
-Route parameters arrive as strings. A scalar type such as `int $id` converts numeric strings, but a non-numeric segment (`/posts/abc`) raises a `TypeError` (a 500 error). Accept `string` and validate when the segment may be arbitrary:
+Route parameters arrive as strings. When the action declares `int` or `float` (nullable included), the router converts the segment before calling it; a segment that is not a valid number for that type answers **404 Not Found**, before route middleware runs:
 
 ```php
-public function show(string $id): string
+Route::get('/posts/{id}', [PostController::class, 'show']);
+```
+
+```php
+public function show(int $id): string   // /posts/42 → 42; /posts/abc and /posts/4.2 → 404
 {
-    if (!ctype_digit($id)) {
-        abort(404);
-    }
     // ...
 }
 ```
+
+`int` accepts digits with an optional sign, within PHP's integer range; `float` accepts any numeric string without surrounding spaces. Other types — `string`, untyped, or a union with a non-numeric type — receive the raw string. Parameters with a [model binding](#model-binding) are left to the binding.
 
 ### Model binding
 

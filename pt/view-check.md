@@ -50,7 +50,7 @@ As opções desconhecidas são rejeitadas com uma mensagem de utilização.
 
 ```bash
 luany view:check --no-app
-luany view:check --path=resources/views --no-app
+luany view:check --path=resources/views
 luany view:check --format=github
 ```
 
@@ -67,7 +67,9 @@ Se o arranque falhar (por exemplo, se faltar o `.env` e `Env::required()` lança
 
 Nesse modo, e com `--no-app`, qualquer `@name` que não seja uma diretiva nativa é tratado como texto simples, pelo que uma vista que use diretivas próprias continua a ser verificada quanto à estrutura e à sintaxe PHP.
 
-> **Aviso** Quando a aplicação arranca, os nomes das vistas são resolvidos pelo motor da aplicação, que lê da pasta `views/` da aplicação — os ficheiros encontrados noutro `--path` são então reportados como "not found". Combine sempre `--path` com `--no-app`.
+Com a aplicação arrancada, os ficheiros em `--path` são analisados pelo caminho com o compilador da aplicação, pelo que as diretivas próprias continuam a ser reconhecidas.
+
+> **Nota** Antes da luany/cli 1.6, os ficheiros num `--path` personalizado eram reportados como "not found" quando a aplicação arrancava. Nas versões anteriores, combine `--path` com `--no-app`.
 
 O `--no-app` é mais rápido e não tem efeitos secundários; é o que a extensão do VS Code usa por omissão.
 

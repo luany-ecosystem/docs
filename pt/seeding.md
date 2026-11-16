@@ -58,14 +58,13 @@ class DatabaseSeeder extends Seeder
 
 ## Usar o query builder e os modelos
 
-A CLI executa os seeders sem arrancar a aplicação, por isso nenhuma ligação de modelos está registada. Envolva o PDO manualmente:
+A CLI executa os seeders sem arrancar a aplicação, mas entrega aos modelos a sua própria ligação (`Model::setConnection()`), por isso os modelos funcionam como na aplicação. Para o query builder, envolva o PDO:
 
 ```php
 <?php
 
 use App\Models\Post;
 use Luany\Database\Connection;
-use Luany\Database\Model;
 use Luany\Database\QueryBuilder;
 use Luany\Database\Seeder\Seeder;
 
@@ -73,10 +72,7 @@ class PostSeeder extends Seeder
 {
     public function run(\PDO $pdo): void
     {
-        $connection = Connection::fromPdo($pdo);
-        Model::setConnection($connection);
-
-        $db = new QueryBuilder($connection);
+        $db = new QueryBuilder(Connection::fromPdo($pdo));
         $db->table('categories')->insert([
             ['name' => 'News',   'slug' => 'news'],
             ['name' => 'Guides', 'slug' => 'guides'],
@@ -89,7 +85,11 @@ class PostSeeder extends Seeder
 }
 ```
 
-A partir daí, os modelos aplicam casts, timestamps e eventos normalmente. Para seeders idempotentes, use `Model::firstOrCreate()` ou [`upsert()`](query-builder.md#upserts), para que executá-los duas vezes não duplique linhas.
+Os modelos aplicam casts, timestamps e eventos normalmente. Para seeders idempotentes, use `Model::firstOrCreate()` ou [`upsert()`](query-builder.md#upserts), para que executá-los duas vezes não duplique linhas.
+
+No SQLite, a CLI ativa as chaves estrangeiras (`PRAGMA foreign_keys = ON`), tal como a aplicação, por isso preencha primeiro as tabelas referenciadas (categorias, utilizadores) e só depois as linhas que apontam para elas — `call()` executa os seeders pela ordem indicada.
+
+> **Nota** A ligação dos modelos é registada automaticamente pela luany/cli 1.6 ou mais recente (`db:seed`, `migrate:fresh --seed` e os restantes comandos `migrate*`). Com uma CLI mais antiga, chame `Model::setConnection(Connection::fromPdo($pdo))` no início de `run()`.
 
 ## Executar seeders
 

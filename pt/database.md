@@ -32,7 +32,7 @@ DB_PASS=secret
 | `DB_USER` | `root` (MySQL) | |
 | `DB_PASS` | vazia | |
 
-> **Aviso** Defina sempre `DB_CONNECTION` explicitamente. A aplicação assume `sqlite` por predefinição, mas a família de comandos `luany migrate` assume `mysql` quando a variável não existe.
+> **Nota** Desde a luany/cli 1.6, os comandos de base de dados do `luany` (`migrate*`, `db:seed`, `doctor`) usam o mesmo valor predefinido, `sqlite`. Os projetos em MySQL ou PostgreSQL têm de definir `DB_CONNECTION` no `.env`.
 
 O `App\Providers\DatabaseServiceProvider` do skeleton lê estes valores e regista:
 
@@ -66,7 +66,13 @@ $memory = Connection::make(['driver' => 'sqlite']);   // base de dados vazia →
 
 O PDO é criado com exceções ativas, `FETCH_ASSOC`, prepared statements nativos e sem conversão dos valores lidos para string. Uma ligação falhada lança `\RuntimeException("Database connection failed: …")`; um driver desconhecido lança `\InvalidArgumentException`.
 
-`Connection::fromPdo(\PDO $pdo)` envolve um PDO já existente — útil em testes.
+As ligações SQLite executam também `PRAGMA foreign_keys = ON`, pelo que as chaves estrangeiras e as ações `ON DELETE` / `ON UPDATE` são aplicadas tal como no MySQL e no PostgreSQL (luany/database 1.8 ou mais recente). Isto aplica-se também à ligação do skeleton. Passe `'foreign_keys' => false` para desativar:
+
+```php
+$legacy = Connection::make(['driver' => 'sqlite', 'database' => 'legacy.sqlite', 'foreign_keys' => false]);
+```
+
+`Connection::fromPdo(\PDO $pdo)` envolve um PDO já existente — útil em testes. As definições do PDO não são alteradas, incluindo o pragma `foreign_keys` do SQLite.
 
 | Método | Descrição |
 | --- | --- |

@@ -87,6 +87,8 @@ app('csrf')->regenerate();
 
 > **Note** Behind a TLS-terminating proxy PHP does not see HTTPS, so the automatic `secure` flag stays off. Set `'secure' => true` in `config/session.php`.
 
+Session files contain CSRF tokens and user data. The skeleton's `.gitignore` excludes `storage/sessions/` (since skeleton 1.4.2); in an older project, add that line and remove any committed session files with `git rm -r --cached storage/sessions`.
+
 ## Trusted proxies
 
 `$request->ip()` and `$request->isSecure()` ignore `X-Forwarded-For` and `X-Forwarded-Proto` unless `REMOTE_ADDR` is a trusted proxy, so clients cannot spoof their address (which would defeat rate limiting). Behind a load balancer, trust it explicitly:
@@ -140,23 +142,27 @@ Route::middleware(new CorsMiddleware(
 
 ## File uploads
 
-The validator has no file rules (`file`, `image`, `mimes`). Validate uploads yourself: check the `error` code, limit the size, detect the MIME type from the content, generate the stored file name, and store files outside `public/` unless they are meant to be public.
+Validate uploads with the `file`, `image` and `mimes` rules and a `max` size in kilobytes (see [Validation](validation.md#file-uploads)), generate the stored file name yourself, and store files outside `public/` unless they are meant to be public:
 
 ```php
-$file = $request->file('avatar');
+$data = validate($request->body() + $request->files(), [
+    'avatar' => 'required|mimes:png,jpg|max:2048',   // PNG or JPEG, up to 2 MB
+]);
 
-if ($file === null || $file['error'] !== UPLOAD_ERR_OK || $file['size'] > 2 * 1024 * 1024) {
-    abort(422, 'Invalid upload.');
-}
-
+$file = $data['avatar'];
 $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
-if (!in_array($mime, ['image/png', 'image/jpeg'], true)) {
-    abort(422, 'Only PNG and JPEG images are allowed.');
-}
-
 $name = bin2hex(random_bytes(16)) . ($mime === 'image/png' ? '.png' : '.jpg');
+
 move_uploaded_file($file['tmp_name'], base_path('storage/uploads/' . $name));
 ```
+
+The file rules are built to resist forged input:
+
+- **`is_uploaded_file()`** — the `tmp_name` must be a file PHP received in this request. A JSON body or form field shaped like a `$_FILES` entry cannot make the validator read, accept or report on an arbitrary server file such as `/etc/passwd` or `.env`. Replace the check with `Validator::setUploadedFileVerifier()` only for tests or PSR-7 workers, and keep the replacement as strict as possible.
+- **Content detection** — the type comes from the file's contents (`finfo`), not from the client's `Content-Type` header or file name. Keep the `fileinfo` extension enabled: without it the validator falls back to the client's file name.
+- **No SVG in `image`** — SVG files can carry scripts. Accept them with `mimes:svg` only when you sanitise them or serve them with `Content-Disposition: attachment`.
+
+A file that passes validation can still be harmful content; never store uploads under `public/` with a name or extension chosen by the client.
 
 ## Checklist
 
@@ -170,7 +176,8 @@ move_uploaded_file($file['tmp_name'], base_path('storage/uploads/' . $name));
 - [ ] HTTPS everywhere; `secure` session cookie and HSTS enabled.
 - [ ] Trusted proxies configured when behind a load balancer.
 - [ ] Rate limiting on login, registration and password reset routes.
-- [ ] Uploads validated and stored outside `public/`.
+- [ ] Uploads validated with `file` / `image` / `mimes` and `max`, and stored outside `public/`.
+- [ ] `storage/sessions/` and `.env` not in version control.
 - [ ] Dependencies up to date (`composer audit`).
 
 See [Deployment](deployment.md) for the server side.

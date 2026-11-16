@@ -8,13 +8,13 @@ Declare a block anywhere — a page, a partial, a component:
 
 ```lte
 {{-- views/components/card.lte --}}
-<div class="card">{!! $slot !!}</div>
+<div class="card">{{ $slot }}</div>
 
 @style
     .card { padding: 1rem; border-radius: 8px; box-shadow: 0 1px 3px rgb(0 0 0 / .1); }
 @endstyle
 
-@script(defer)
+@script(module)
     document.querySelectorAll('.card').forEach(card => card.classList.add('ready'));
 @endscript
 ```
@@ -39,7 +39,7 @@ Output:
 .card { padding: 1rem; border-radius: 8px; box-shadow: 0 1px 3px rgb(0 0 0 / .1); }
 </style>
 ...
-<script defer>
+<script type="module">
 document.querySelectorAll('.card').forEach(card => card.classList.add('ready'));
 </script>
 ```
@@ -49,13 +49,37 @@ document.querySelectorAll('.card').forEach(card => card.classList.add('ready'));
 - **Placeholders.** `@styles` and `@scripts` compile to HTML comment placeholders. The engine replaces them only after the page *and* every layout level have been evaluated, so blocks registered by partials included later in the layout (navbar, footer, flash messages) still appear — even when `@styles` sits in `<head>`.
 - **Deduplication.** Blocks with identical content are kept once. A component rendered fifty times contributes its CSS once.
 - **Order.** Blocks are printed in the order they were first registered.
-- **Options.** `@script(defer)` adds `defer`. No other attribute is supported.
+- **Options.** `@script` accepts `module`, `defer` and `async`, separated by commas (see below).
 - **Placement.** Use `@styles` and `@scripts` in the layout (or the top-level view). Each may appear more than once; every occurrence receives the full output.
 - **Per render.** The collection is reset at the start of every top-level `render()`.
 
 `@style` / `@script` content is copied as-is: `{{ }}` and directives inside still work, so you can interpolate values — but remember that content-based deduplication then sees each distinct value as a different block.
 
 > **Tip** Prefer static files (`<link href="{{ asset('css/app.css') }}">`) for anything shared across pages. Asset blocks shine for small, component-local rules.
+
+### Script options
+
+| Option | Output | Effect |
+| --- | --- | --- |
+| `module` | `type="module"` | ES module: deferred by default, its own scope, `import` allowed. |
+| `defer` | `defer` | Runs after the document has been parsed. |
+| `async` | `async` | Runs as soon as it is ready. |
+
+```lte
+@script(module, async)
+    import { init } from '/js/charts.js';
+    init(document.querySelectorAll('[data-chart]'));
+@endscript
+```
+
+```html
+<script type="module" async>
+import { init } from '/js/charts.js';
+init(document.querySelectorAll('[data-chart]'));
+</script>
+```
+
+> **Note** Browsers honour `defer` and `async` on inline scripts only together with `module`: a plain `@script(defer)` prints the attribute, but the script still runs immediately. Use `@script(module)` for deferred inline code. Unknown options are ignored. `module` and `async` need LTE 1.3; earlier versions accepted only `defer`.
 
 ## Stacks
 

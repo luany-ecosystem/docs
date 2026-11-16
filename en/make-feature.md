@@ -29,13 +29,13 @@ Open `http://localhost:8000/products` to list, create, show, edit and delete pro
 
 The feature name is converted to StudlyCase (`product`, `Product` and `blog-post` are all valid) and everything else is derived from it:
 
-| Feature | Model | Table, URL and view folder | View variables |
-|---|---|---|---|
-| `Product` | `Product` | `products` | `$product`, `$products` |
-| `Category` | `Category` | `categories` | `$category`, `$categories` |
-| `BlogPost` | `BlogPost` | `blogposts` | `$blogpost`, `$blogposts` |
+| Feature | Model | Table | URL, routes file and view folder | View variables |
+|---|---|---|---|---|
+| `Product` | `Product` | `products` | `products` | `$product`, `$products` |
+| `Category` | `Category` | `categories` | `categories` | `$category`, `$categories` |
+| `BlogPost` | `BlogPost` | `blog_posts` | `blog-posts` | `$blogpost`, `$blogposts` |
 
-Pluralization is a small English rule set: consonant + `y` → `ies`, `s`/`sh`/`ch`/`x`/`z` → `es`, otherwise `s`. Multi-word names are lower-cased without a separator (`blogposts`).
+Pluralization is a small English rule set: consonant + `y` → `ies`, `s`/`sh`/`ch`/`x`/`z` → `es`, otherwise `s`. Multi-word names use `snake_case` for the table (`blog_posts`, also in the model and the validation rules) and `kebab-case` for URLs, the routes file and the views folder (`/blog-posts`, `routes/blog-posts.php`, `views/pages/blog-posts/`); view variables stay lower-cased without a separator (`$blogpost`). Before luany/cli 1.6 all of them used `blogposts`.
 
 ## Fields
 

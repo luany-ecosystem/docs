@@ -1,6 +1,6 @@
 # Extensão do VS Code
 
-A extensão oficial **Luany LTE** para o Visual Studio Code acrescenta realce de sintaxe, snippets, um ícone de ficheiro e diagnóstico de erros em tempo real para os templates `.lte`. Esta página aborda a instalação, as funcionalidades e as definições.
+A extensão oficial **Luany LTE** para o Visual Studio Code acrescenta realce de sintaxe, snippets, um ícone de ficheiro e diagnóstico de erros em tempo real para os templates `.lte`. O ícone de ficheiro e o diagnóstico chegaram na versão 1.2. Esta página aborda a instalação, as funcionalidades e as definições.
 
 ## Instalação
 
@@ -92,7 +92,7 @@ Quando abre ou guarda um ficheiro `.lte`, a extensão executa [`luany view:check
 - `@else`, `@elseif` ou `@empty` fora do sítio, e diretivas sem os argumentos necessários;
 - erros de sintaxe PHP dentro de `{{ }}`, `{!! !!}`, `@php` e argumentos das diretivas.
 
-O diagnóstico abrange todo o projeto, não apenas o ficheiro aberto, e é substituído em cada execução. As execuções passam por um debounce (300 ms) e nunca se sobrepõem para o mesmo projeto.
+O diagnóstico abrange todo o projeto, não apenas o ficheiro aberto, e é substituído em cada execução. As execuções passam por um debounce (300 ms) e nunca se sobrepõem para o mesmo projeto; uma gravação feita enquanto decorre uma verificação desencadeia uma nova verificação quando esta termina.
 
 Para validar quando quiser, abra a Command Palette e execute **Luany LTE: Validate views**. O resultado aparece na barra de estado: `all views OK` ou o número de problemas.
 
@@ -107,7 +107,7 @@ A raiz do projeto é a pasta mais próxima acima do ficheiro que contenha `boots
 2. `vendor/bin/luany` no projeto (executado com `php`).
 3. `luany` no seu `PATH`.
 
-Se não for encontrada nenhuma CLI, a extensão mostra um aviso, uma única vez, com o comando de instalação. As outras falhas são escritas no canal de output **Luany LTE**.
+Se não for encontrada nenhuma CLI, a extensão mostra um aviso, uma única vez, com o comando de instalação. Se o `view:check` falhar sem resultados — uma CLI antiga, uma aplicação que não arranca, um timeout (30 s) — o diagnóstico existente é mantido e o motivo é escrito no canal de output **Luany LTE**.
 
 ### Definições
 

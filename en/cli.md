@@ -53,7 +53,7 @@ Most commands must run inside a Luany project. The CLI walks up from the current
 | `make:test` | Scaffold a PHPUnit test |
 | `make:feature` | Scaffold a complete CRUD feature |
 | `migrate` | Run all pending migrations |
-| `migrate:rollback` | Roll back the last migration batch |
+| `migrate:rollback` | Roll back the last migration batch (`--step=N`: the last N migrations) |
 | `migrate:status` | Show the status of all migrations |
 | `migrate:fresh` | Drop all tables and re-run all migrations |
 | `db:seed` | Run database seeders |
@@ -134,7 +134,7 @@ All generators validate names before writing anything. Class names accept Studly
 
 If the target file already exists, the generator leaves it untouched and prints a warning (`make:seeder` exits with an error instead).
 
-> **Warning** `make:controller Admin/Post` places the class in the `App\Controllers\Admin` namespace but the stub extends `Controller` without importing it. Add `use App\Controllers\Controller;` to controllers generated in sub-directories.
+Controllers generated in sub-directories (`Admin/Post` → namespace `App\Controllers\Admin`) import the base `App\Controllers\Controller`.
 
 ### make:migration
 
@@ -173,6 +173,7 @@ The first argument is a dotted view name (segments of letters, digits, `_` or `-
 |---|---|
 | `luany migrate` | Run all pending migrations in `database/migrations` |
 | `luany migrate:rollback` | Roll back the last batch |
+| `luany migrate:rollback --step=N` | Roll back the last N migrations (newest first, across batches) |
 | `luany migrate:status` | Table of migrations: ran or not, and batch number |
 | `luany migrate:fresh` | Drop **all** tables, then run every migration |
 | `luany db:seed` | Run `DatabaseSeeder` from `database/seeders` |
@@ -181,12 +182,14 @@ The first argument is a dotted view name (segments of letters, digits, `_` or `-
 |---|---|---|
 | `--force` | `migrate:fresh` | Skip the confirmation prompt (required in scripts and CI) |
 | `--seed` | `migrate:fresh` | Run `DatabaseSeeder` after migrating |
+| `--step=N` / `--step N` | `migrate:rollback` | Roll back the last N migrations instead of the last batch (needs luany/database 1.8 or newer) |
 | `--class=Name` / `--class Name` | `db:seed` | Run a specific seeder instead of `DatabaseSeeder` |
 
-`migrate:fresh` asks `This drops ALL tables. Continue? [y/N]` and aborts by default — also when input is not a terminal, so always pass `--force` in automation. There is no `--step` option; `migrate:rollback` always rolls back one whole batch.
+`migrate:fresh` asks `This drops ALL tables. Continue? [y/N]` and aborts by default — also when input is not a terminal, so always pass `--force` in automation. Without `--step`, `migrate:rollback` rolls back one whole batch; with an older luany/database, `--step` stops with a hint to run `composer update luany/database`.
 
 ```bash
 luany migrate:fresh --seed --force
+luany migrate:rollback --step=2
 luany db:seed --class=UserSeeder
 ```
 
@@ -196,7 +199,7 @@ Database commands read the same settings as the application, **without booting i
 
 | Variable | Used for | CLI default |
 |---|---|---|
-| `DB_CONNECTION` | `sqlite`, `mysql` or `pgsql` | `mysql` |
+| `DB_CONNECTION` | `sqlite`, `mysql` or `pgsql` | `sqlite` |
 | `DB_NAME` | Database name, or the SQLite file path (relative to the project root) | `database/database.sqlite` for SQLite, otherwise `luany` |
 | `DB_HOST` / `DB_PORT` | Server address | `127.0.0.1` / `3306` (`5432` for pgsql) |
 | `DB_USER` / `DB_PASS` | Credentials | `root` (`postgres` for pgsql) / empty |
@@ -209,7 +212,7 @@ Values are resolved in this order:
 
 This is the same precedence the application uses (its `.env` loader never overwrites existing variables), so the CLI always talks to the same database as the app.
 
-> **Warning** When `DB_CONNECTION` is not set, the CLI falls back to `mysql` (for projects created before SQLite became the default), while the skeleton's `DatabaseServiceProvider` falls back to `sqlite`. Always set `DB_CONNECTION` explicitly.
+> **Note** The CLI defaults match the skeleton's `DatabaseServiceProvider` (`sqlite`, file `database/database.sqlite`). Projects on MySQL or PostgreSQL must set `DB_CONNECTION` in `.env`, as the application requires anyway. On SQLite the commands enable `PRAGMA foreign_keys = ON`, like the application, and `db:seed` / `migrate*` give your models the CLI's connection, so models work in seeders and migrations (see [Seeding](seeding.md#using-the-query-builder-and-models)).
 
 If `.env` exists but cannot be read, the command stops with a permissions hint. If there is no `.env` and no `DB_*` variable in the environment, it asks you to run `luany key:generate`.
 
@@ -259,12 +262,10 @@ Checks the environment, and — inside a project — the project's health:
 
 | Scope | Checks |
 |---|---|
-| Global | PHP ≥ 8.2; extensions `pdo`, `pdo_mysql`, `mbstring`, `openssl`, `json`; Composer; `luany/cli` version |
+| Global | PHP ≥ 8.2; extensions `pdo`, the PDO driver of `DB_CONNECTION` (`pdo_sqlite` by default), `mbstring`, `openssl`, `json`; Composer; `luany/cli` version |
 | Project | `.env`, `vendor/`, `vendor/luany/framework`, `database/migrations`, `APP_KEY`, `bootstrap/app.php`, `public/index.php`, `config/app.php` |
 | Storage | `storage/cache/views` and `storage/logs` are writable |
 | Database | PDO driver installed, connection works (`from environment` when `DB_*` came from real variables), `_migrations` table exists |
-
-> **Note** `doctor` always checks `pdo_mysql`, so a SQLite-only machine shows a red mark there. The database section checks the driver you actually use.
 
 ### about
 
@@ -272,7 +273,7 @@ Checks the environment, and — inside a project — the project's health:
 luany about
 ```
 
-Shows the application name, environment, debug flag and URL (read from `.env`), plus the installed versions of PHP, `luany/framework`, `luany/core`, `luany/lte` (from `composer.lock`) and `luany/cli`.
+Shows the application name, environment, debug flag and URL (real environment variables first, then `.env`, like the framework's `env()`), plus the installed versions of PHP, `luany/framework`, `luany/core`, `luany/lte` (from `composer.lock`) and `luany/cli`.
 
 ## Exit codes
 

@@ -50,7 +50,7 @@ Unknown options are rejected with a usage message.
 
 ```bash
 luany view:check --no-app
-luany view:check --path=resources/views --no-app
+luany view:check --path=resources/views
 luany view:check --format=github
 ```
 
@@ -67,7 +67,9 @@ If booting fails (for example `.env` is missing and `Env::required()` throws), t
 
 In that mode, and with `--no-app`, any `@name` that is not a built-in directive is treated as plain text, so a view using custom directives is still checked for structure and PHP syntax.
 
-> **Warning** When the application boots, view names are resolved by the application's engine, which reads from the app's `views/` directory — files found under another `--path` are then reported as "not found". Always combine `--path` with `--no-app`.
+With the application booted, files under `--path` are parsed by path with the application's compiler, so custom directives are still known.
+
+> **Note** Before luany/cli 1.6, files under a custom `--path` were reported as "not found" when the application booted. On older versions, combine `--path` with `--no-app`.
 
 `--no-app` is faster and has no side effects; it is what the VS Code extension uses by default.
 

@@ -29,13 +29,13 @@ Abra `http://localhost:8000/products` para listar, criar, ver, editar e apagar p
 
 O nome da funcionalidade é convertido para StudlyCase (`product`, `Product` e `blog-post` são todos válidos) e tudo o resto é derivado dele:
 
-| Funcionalidade | Modelo | Tabela, URL e pasta de vistas | Variáveis nas vistas |
-|---|---|---|---|
-| `Product` | `Product` | `products` | `$product`, `$products` |
-| `Category` | `Category` | `categories` | `$category`, `$categories` |
-| `BlogPost` | `BlogPost` | `blogposts` | `$blogpost`, `$blogposts` |
+| Funcionalidade | Modelo | Tabela | URL, ficheiro de rotas e pasta de vistas | Variáveis nas vistas |
+|---|---|---|---|---|
+| `Product` | `Product` | `products` | `products` | `$product`, `$products` |
+| `Category` | `Category` | `categories` | `categories` | `$category`, `$categories` |
+| `BlogPost` | `BlogPost` | `blog_posts` | `blog-posts` | `$blogpost`, `$blogposts` |
 
-A pluralização segue um pequeno conjunto de regras do inglês: consoante + `y` → `ies`, `s`/`sh`/`ch`/`x`/`z` → `es`, caso contrário `s`. Os nomes compostos ficam em minúsculas, sem separador (`blogposts`).
+A pluralização segue um pequeno conjunto de regras do inglês: consoante + `y` → `ies`, `s`/`sh`/`ch`/`x`/`z` → `es`, caso contrário `s`. Os nomes compostos usam `snake_case` na tabela (`blog_posts`, também no modelo e nas regras de validação) e `kebab-case` nos URLs, no ficheiro de rotas e na pasta de vistas (`/blog-posts`, `routes/blog-posts.php`, `views/pages/blog-posts/`); as variáveis nas vistas ficam em minúsculas, sem separador (`$blogpost`). Antes da luany/cli 1.6, todos usavam `blogposts`.
 
 ## Campos
 

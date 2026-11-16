@@ -134,6 +134,9 @@ Um nome de regra desconhecido lança uma `InvalidArgumentException` — um erro 
 | `same:{field}` / `different:{field}` | Igual a / diferente de outro campo |
 | `unique:{table},{column},{ignore},{ignoreColumn}` | Nenhum registo tem este valor — consulte [regras de base de dados](#regras-de-base-de-dados) |
 | `exists:{table},{column}` | Um registo tem este valor; nos arrays, todos os elementos têm de existir |
+| `file` | Um upload bem-sucedido — consulte [upload de ficheiros](#upload-de-ficheiros) |
+| `image` | Uma imagem JPEG, PNG, GIF, BMP ou WebP enviada (não SVG) |
+| `mimes:{ext},{ext},...` | Um ficheiro enviado cujo tipo detetado corresponde a uma das extensões |
 
 ### Valores vazios
 
@@ -155,11 +158,21 @@ Um campo `boolean` é sempre convertido para `bool`, e um campo ausente passa a 
 
 `min`, `max` e `between` medem:
 
-- **arrays** pelo número de elementos,
-- **números e strings numéricas** pelo valor,
-- **outras strings** pelo comprimento em caracteres.
+| Valor | Medido por |
+| --- | --- |
+| Ficheiro enviado | O tamanho em **kilobytes** |
+| Array | O número de elementos |
+| `int` ou `float` | O valor |
+| String numérica, quando o campo tem também `numeric` ou `integer` | O valor |
+| Qualquer outra string | O comprimento em caracteres |
 
-> **Aviso** Uma string numérica é comparada pelo valor, não pelo comprimento: `"12345678"` passa em `min:8` porque 12345678 ≥ 8, e um nome como `"300"` falha em `max:255`. Use `digits:{n}` ou `regex` para códigos numéricos e PINs.
+Os dados de formulário chegam sempre como strings, por isso acrescente `numeric` ou `integer` para comparar um número pelo valor:
+
+```php
+'age'  => 'required|integer|min:18',     // "17" falha: comparado como 17
+'name' => 'required|string|max:255',     // "300" passa: 3 caracteres
+'pin'  => 'required|string|min:4',       // "1234" passa: 4 caracteres
+```
 
 ### Datas
 
@@ -169,6 +182,48 @@ Um campo `boolean` é sempre convertido para `bool`, e um campo ausente passa a 
 'starts_at' => 'required|date|after:today',
 'ends_at'   => 'required|date|after:starts_at',
 ```
+
+## Upload de ficheiros
+
+`file`, `image` e `mimes` validam uma entrada no formato de `$_FILES` (`name`, `type`, `tmp_name`, `error`, `size`). Os uploads não fazem parte de `body()`, por isso acrescente-os aos dados que valida:
+
+```php
+public function update(Request $request): Response
+{
+    $data = validate($request->body() + $request->files(), [
+        'name'   => 'required|string|max:255',
+        'avatar' => 'nullable|image|max:2048',          // opcional, até 2 MB
+        'cv'     => 'required|file|mimes:pdf|max:5120', // obrigatório, PDF, até 5 MB
+    ]);
+
+    if ($data['avatar'] !== null) {
+        $name = bin2hex(random_bytes(16));   // nunca reutilize o nome de ficheiro do cliente
+        move_uploaded_file($data['avatar']['tmp_name'], base_path('storage/uploads/' . $name));
+    }
+    // ...
+}
+```
+
+- Um campo de ficheiro vazio (`UPLOAD_ERR_NO_FILE`) conta como ausência de valor: `required` falha, `nullable` dá `null` e as outras regras ignoram-no. Qualquer outro erro de upload faz falhar `file`, `image` e `mimes`.
+- O tipo é detetado a partir do **conteúdo** do ficheiro com `finfo`, nunca a partir do `Content-Type` do cliente. Sem a extensão `fileinfo`, é usada a extensão do nome de ficheiro do cliente — ative a `fileinfo` em produção.
+- `mimes` conhece `jpg`, `jpeg`, `png`, `gif`, `bmp`, `webp`, `svg`, `pdf`, `txt`, `csv`, `json`, `xml`, `zip`, `mp3`, `mp4`, `doc`, `docx`, `xls` e `xlsx`. Qualquer outra extensão é comparada apenas com o nome de ficheiro do cliente.
+- O `tmp_name` tem de passar em `is_uploaded_file()`, para que um campo forjado não consiga apontar o validador para um ficheiro que já existe no servidor. Consulte [Segurança](security.md#upload-de-ficheiros).
+- Só são suportados campos de um único ficheiro; um campo com vários ficheiros (`name="photos[]"`) não é um array de ficheiro.
+
+### Testes e servidores PSR-7
+
+Os ficheiros que não vêm de um upload do PHP — em testes, ou num worker PSR-7 — falham a verificação `is_uploaded_file()`. Substitua-a com `Validator::setUploadedFileVerifier()`, que recebe o caminho `tmp_name`; `null` repõe a predefinição:
+
+```php
+use Luany\Framework\Validation\Validator;
+
+Validator::setUploadedFileVerifier(fn (string $path) => str_starts_with($path, sys_get_temp_dir()));
+
+// no tearDown() de um teste
+Validator::setUploadedFileVerifier(null);
+```
+
+O verificador é estático: aplica-se a todas as validações do processo até ser reposto.
 
 ## Regras de base de dados
 

@@ -38,6 +38,8 @@ An action is a closure or a `[Controller::class, 'method']` pair. See [Controlle
 
 `HEAD` requests are answered by the matching `GET` route, without a body. Routes are matched in registration order; the first match wins.
 
+URIs may contain dots, as in `Route::get('/sitemap.xml', ...)` or `/feed.json`. They match the same way under `luany serve` / `luany dev` as behind Apache or Nginx.
+
 ### Return values
 
 | Action returns | Response |
@@ -60,6 +62,16 @@ Route::get('/users/{user}/posts/{post}', [UserPostController::class, 'show']);
 ```
 
 Parameters are passed to the action **by name**, so their order in the signature does not matter. Parameter names must start with a letter or underscore. Optional parameters and regular-expression constraints are not supported — validate the value in the action and `abort(404)` when it is invalid.
+
+### Numeric parameters
+
+A parameter whose action argument is declared `int` or `float` is converted to that type. A segment that is not a valid number answers **404**, before route middleware runs:
+
+```php
+Route::get('/posts/{id}', fn (int $id) => "Post #{$id}");   // /posts/7 → 7, /posts/abc → 404
+```
+
+See [Controllers](controllers.md#scalar-types) for the exact rules.
 
 ### Form method spoofing
 
@@ -219,4 +231,33 @@ A route table is cacheable only when every action and middleware survives `var_e
 
 `Route::cache()` throws a `RuntimeException` listing every offending route instead of silently dropping it.
 
-> **Note** The HTTP Kernel loads the route files on every request and does not read a route cache. The cache API is for custom front controllers and long-running workers that drive the router themselves.
+### Using the cache in the Kernel
+
+When `storage/cache/routes.php` exists, the HTTP Kernel loads the routes from it and **does not run the route files**. Generate it after loading the route files — for example with a small script run on deploy:
+
+```php
+<?php
+// bin/route-cache.php
+use Luany\Core\Routing\Route;
+use Luany\Framework\Http\Kernel;
+
+$app    = require __DIR__ . '/../bootstrap/app.php';
+$kernel = $app->make(Kernel::class);
+$path   = $kernel->routeCachePath();       // base_path('storage/cache/routes.php')
+
+Route::clearCache($path);                  // so boot() reads routes/*.php, not an old cache
+$kernel->boot();
+Route::cache($path);
+
+echo "Routes cached: {$path}\n";
+```
+
+```bash
+php bin/route-cache.php
+```
+
+- A cache file is used until it is deleted: regenerate it on every deploy and run `Route::clearCache()` (or delete the file) whenever routes change. Do not create it in development.
+- `Route::bind()` resolvers are closures and are not cached. When you use the cache, register them in a service provider's `boot()` method instead of a route file.
+- To change the location, override `protected string $routeCacheFile` in `App\Http\Kernel` (relative to the project root); set it to `''` to disable the cache.
+
+The CLI has no `route:cache` command. See [Deployment](deployment.md#routes).

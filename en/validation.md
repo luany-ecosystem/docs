@@ -134,6 +134,9 @@ An unknown rule name throws an `InvalidArgumentException` — a typo never silen
 | `same:{field}` / `different:{field}` | Equal to / different from another field |
 | `unique:{table},{column},{ignore},{ignoreColumn}` | No row has this value — see [database rules](#database-rules) |
 | `exists:{table},{column}` | A row has this value; for arrays, every element exists |
+| `file` | A successful upload — see [file uploads](#file-uploads) |
+| `image` | An uploaded JPEG, PNG, GIF, BMP or WebP image (not SVG) |
+| `mimes:{ext},{ext},...` | An uploaded file whose detected type matches one of the extensions |
 
 ### Empty values
 
@@ -155,11 +158,21 @@ A `boolean` field is always cast to `bool`, and an absent one becomes `false` �
 
 `min`, `max` and `between` measure:
 
-- **arrays** by their number of items,
-- **numbers and numeric strings** by their value,
-- **other strings** by their length in characters.
+| Value | Measured by |
+| --- | --- |
+| Uploaded file | Its size in **kilobytes** |
+| Array | Its number of items |
+| `int` or `float` | Its value |
+| Numeric string, when the field also has `numeric` or `integer` | Its value |
+| Any other string | Its length in characters |
 
-> **Warning** A numeric string is compared by value, not length: `"12345678"` passes `min:8` because 12345678 ≥ 8, and a name like `"300"` fails `max:255`. Use `digits:{n}` or `regex` for numeric codes and PINs.
+Form input always arrives as strings, so add `numeric` or `integer` to compare a number by value:
+
+```php
+'age'  => 'required|integer|min:18',     // "17" fails: compared as 17
+'name' => 'required|string|max:255',     // "300" passes: 3 characters
+'pin'  => 'required|string|min:4',       // "1234" passes: 4 characters
+```
 
 ### Dates
 
@@ -169,6 +182,48 @@ A `boolean` field is always cast to `bool`, and an absent one becomes `false` �
 'starts_at' => 'required|date|after:today',
 'ends_at'   => 'required|date|after:starts_at',
 ```
+
+## File uploads
+
+`file`, `image` and `mimes` validate a `$_FILES`-style entry (`name`, `type`, `tmp_name`, `error`, `size`). Uploads are not part of `body()`, so add them to the data you validate:
+
+```php
+public function update(Request $request): Response
+{
+    $data = validate($request->body() + $request->files(), [
+        'name'   => 'required|string|max:255',
+        'avatar' => 'nullable|image|max:2048',          // optional, up to 2 MB
+        'cv'     => 'required|file|mimes:pdf|max:5120', // required, PDF, up to 5 MB
+    ]);
+
+    if ($data['avatar'] !== null) {
+        $name = bin2hex(random_bytes(16));   // never reuse the client's file name
+        move_uploaded_file($data['avatar']['tmp_name'], base_path('storage/uploads/' . $name));
+    }
+    // ...
+}
+```
+
+- An empty file input (`UPLOAD_ERR_NO_FILE`) counts as no value: `required` fails, `nullable` gives `null`, and the other rules skip it. Any other upload error fails `file`, `image` and `mimes`.
+- The type is detected from the file **contents** with `finfo`, never from the client's `Content-Type`. Without the `fileinfo` extension, the client file name's extension is used instead — enable `fileinfo` in production.
+- `mimes` knows `jpg`, `jpeg`, `png`, `gif`, `bmp`, `webp`, `svg`, `pdf`, `txt`, `csv`, `json`, `xml`, `zip`, `mp3`, `mp4`, `doc`, `docx`, `xls` and `xlsx`. Any other extension is matched against the client file name only.
+- `tmp_name` must pass `is_uploaded_file()`, so a crafted field cannot point the validator at a file already on the server. See [Security](security.md#file-uploads).
+- Only single-file inputs are supported; a multi-file input (`name="photos[]"`) is not a file array.
+
+### Testing and PSR-7 servers
+
+Files that do not come from a PHP upload — in tests, or under a PSR-7 worker — fail the `is_uploaded_file()` check. Replace it with `Validator::setUploadedFileVerifier()`, which receives the `tmp_name` path; `null` restores the default:
+
+```php
+use Luany\Framework\Validation\Validator;
+
+Validator::setUploadedFileVerifier(fn (string $path) => str_starts_with($path, sys_get_temp_dir()));
+
+// in a test's tearDown()
+Validator::setUploadedFileVerifier(null);
+```
+
+The verifier is static: it applies to every validation in the process until it is reset.
 
 ## Database rules
 

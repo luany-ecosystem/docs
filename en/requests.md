@@ -74,6 +74,8 @@ if ($request->hasFile('avatar')) {
 }
 ```
 
+Check the type and size of an upload with the `file`, `image` and `mimes` rules before storing it — see [Validation](validation.md#file-uploads).
+
 ## Headers, cookies and server values
 
 | Method | Description |

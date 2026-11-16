@@ -88,6 +88,16 @@ luany migrate
 
 O script de pós-instalação do skeleton copia `.env.example` para `.env`, gera uma nova `APP_KEY` e cria o ficheiro da base de dados SQLite. Ao contrário do `luany new`, não executa as migrations.
 
+### Versões
+
+Os novos projetos partem do skeleton 1.4.2, com o `luany/framework` 1.4 e o `luany/core` 1.4. Para atualizar um projeto existente:
+
+```bash
+composer update luany/framework luany/core
+```
+
+Os projetos criados antes do skeleton 1.4.2 devem também acrescentar `/storage/sessions/` ao `.gitignore` e apagar a redefinição vazia de `$dontReport` em `app/Exceptions/Handler.php` — consulte [Tratamento de erros](errors.md#reporte-de-exceções).
+
 ## Executar a aplicação
 
 ```bash

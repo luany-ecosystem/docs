@@ -85,7 +85,15 @@ Ative o OPcache em produção; os templates compilados são invalidados no OPcac
 
 ### Rotas
 
-O Kernel HTTP carrega `routes/http.php` e todos os outros ficheiros `routes/*.php` em cada pedido. Não lê nenhuma cache de rotas, e a CLI não tem um comando `route:cache`. A API `Route::cache()` do `luany/core` destina-se a front controllers personalizados e a workers de longa duração (consulte [Rotas](routing.md#cache-de-rotas)). Com o OPcache ativo, carregar os ficheiros de rotas tem um custo baixo.
+Sem cache, o Kernel HTTP carrega `routes/http.php` e todos os outros ficheiros `routes/*.php` em cada pedido; com o OPcache ativo, isto tem um custo baixo. Quando `storage/cache/routes.php` existe, o Kernel carrega a tabela de rotas a partir dele.
+
+A CLI não tem um comando `route:cache`. Gere o ficheiro no seu script de deploy, depois do `composer install`, com um script como o `bin/route-cache.php` apresentado em [Rotas](routing.md#usar-a-cache-no-kernel):
+
+```bash
+php bin/route-cache.php
+```
+
+A cache exige ações de controller ou `Route::view()` — o `Route::cache()` lança uma exceção com a lista de todas as rotas com closures. Uma cache desatualizada continua a servir as rotas antigas, por isso volte a gerá-la em **cada** deploy e nunca publique uma cache criada a partir de outros ficheiros de rotas. Mantenha-a fora do controlo de versões — o `.gitignore` do skeleton exclui `/storage/cache/routes.php` desde a 1.4.3 (acrescente a linha em projetos mais antigos).
 
 ## Permissões de ficheiros
 
@@ -208,6 +216,7 @@ Defina `APP_URL` com o URL público `https://`, para que `url()` e `asset()` ger
 - [ ] `storage/` (e `database/` no caso do SQLite) com permissão de escrita para o servidor web.
 - [ ] `luany migrate` executado.
 - [ ] `luany cache:clear` executado; OPcache ativo.
+- [ ] Cache de rotas gerada de novo (ou apagada), se a usar.
 - [ ] HTTPS obrigatório; proxies de confiança e cookie de sessão `secure` configurados quando atrás de um proxy.
 - [ ] `luany doctor` passa sem erros.
 - [ ] Logs em `storage/logs` monitorizados e com rotação.

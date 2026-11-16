@@ -85,7 +85,15 @@ Enable OPcache in production; compiled templates are invalidated in OPcache when
 
 ### Routes
 
-The HTTP Kernel loads `routes/http.php` and every other `routes/*.php` file on each request. It does not read a route cache, and the CLI has no `route:cache` command. The `Route::cache()` API in `luany/core` is meant for custom front controllers and long-running workers (see [Routing](routing.md#route-caching)). With OPcache enabled, loading the route files is cheap.
+Without a cache, the HTTP Kernel loads `routes/http.php` and every other `routes/*.php` file on each request; with OPcache enabled this is cheap. When `storage/cache/routes.php` exists, the Kernel loads the route table from it instead.
+
+The CLI has no `route:cache` command. Generate the file in your deploy script, after `composer install`, with a script such as the `bin/route-cache.php` shown in [Routing](routing.md#using-the-cache-in-the-kernel):
+
+```bash
+php bin/route-cache.php
+```
+
+The cache requires controller or `Route::view()` actions — `Route::cache()` throws and lists any closure route. A stale cache keeps serving the old routes, so regenerate it on **every** deploy and never ship one built from different route files. Keep it out of version control — the skeleton's `.gitignore` excludes `/storage/cache/routes.php` since 1.4.3 (add the line in older projects).
 
 ## File permissions
 
@@ -208,6 +216,7 @@ Set `APP_URL` to the public `https://` URL so `url()` and `asset()` generate cor
 - [ ] `storage/` (and `database/` for SQLite) writable by the web server.
 - [ ] `luany migrate` run.
 - [ ] `luany cache:clear` run; OPcache enabled.
+- [ ] Route cache regenerated (or deleted) if you use one.
 - [ ] HTTPS enforced; trusted proxies and `secure` session cookie configured when behind a proxy.
 - [ ] `luany doctor` passes.
 - [ ] Logs in `storage/logs` monitored and rotated.

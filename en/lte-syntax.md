@@ -90,6 +90,8 @@ return view('pages.about', [
 
 Implement `Htmlable` on your own value objects (a Markdown renderer, a pagination widget) to let them render their markup through `{{ }}`.
 
+Component [slots](lte-layouts.md#components) are `HtmlString`s too, so `{{ $slot }}` prints them unescaped. `HtmlString::isEmpty()` / `isNotEmpty()` tell whether the wrapped HTML is empty or only whitespace.
+
 ## Comments
 
 `{{-- --}}` comments are removed at compile time and never reach the HTML:

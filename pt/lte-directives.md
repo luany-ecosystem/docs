@@ -37,8 +37,8 @@ Todas as diretivas incorporadas do LTE, agrupadas por finalidade. A lista corres
 | `@section('name', $value)` | — | Secção inline; `$value` é escapado. |
 | `@yield('name', $default = '')` | sim | Imprime uma secção; o valor predefinido é escapado. |
 | `@include('view', $data = [])` | sim | Renderiza uma vista com as variáveis da vista-mãe juntas a `$data`. |
-| `@component('view', $data = [])` … `@endcomponent` | sim | Renderiza um componente; o conteúdo interior passa a ser `$slot`. |
-| `@slot('name')` … `@endslot` | sim | Slot nomeado dentro de `@component`, exposto como `$name`. |
+| `@component('view', $data = [])` … `@endcomponent` | sim | Renderiza um componente; o conteúdo interior passa a ser `$slot` (um `HtmlString`). |
+| `@slot('name')` … `@endslot` | sim | Slot nomeado dentro de `@component`, exposto como `$name` (um `HtmlString`). |
 
 Os argumentos de nome podem ser strings entre aspas, nomes com pontos sem aspas (`@extends(layouts.main)`) ou qualquer expressão PHP (`@include($view)`). Ver [Layouts e componentes](lte-layouts.md).
 
@@ -47,7 +47,7 @@ Os argumentos de nome podem ser strings entre aspas, nomes com pontos sem aspas 
 | Diretiva | Args | Comportamento |
 | --- | --- | --- |
 | `@style` … `@endstyle` | — | Recolhe um bloco `<style>` (sem duplicados). |
-| `@script` / `@script(defer)` … `@endscript` | — | Recolhe um bloco `<script>`; `defer` acrescenta o atributo. |
+| `@script` / `@script(module, defer, async)` … `@endscript` | — | Recolhe um bloco `<script>`; `module` acrescenta `type="module"`, `defer` / `async` acrescentam esses atributos. |
 | `@styles` | — | Marcador substituído por todos os estilos recolhidos, no fim da renderização completa. |
 | `@scripts` | — | Marcador substituído por todos os scripts recolhidos, no fim da renderização completa. |
 | `@push('name')` … `@endpush` | sim | Acrescenta conteúdo a uma stack nomeada. |

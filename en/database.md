@@ -32,7 +32,7 @@ DB_PASS=secret
 | `DB_USER` | `root` (MySQL) | |
 | `DB_PASS` | empty | |
 
-> **Warning** Always set `DB_CONNECTION` explicitly. The application defaults to `sqlite`, but the `luany migrate` family of commands defaults to `mysql` when the variable is missing.
+> **Note** Since luany/cli 1.6, the `luany` database commands (`migrate*`, `db:seed`, `doctor`) use the same default, `sqlite`. Projects on MySQL or PostgreSQL must set `DB_CONNECTION` in `.env`.
 
 The skeleton's `App\Providers\DatabaseServiceProvider` reads these values and registers:
 
@@ -66,7 +66,13 @@ $memory = Connection::make(['driver' => 'sqlite']);   // empty database → :mem
 
 The PDO is created with exceptions enabled, `FETCH_ASSOC`, native prepared statements and no stringified fetches. A failed connection throws `\RuntimeException("Database connection failed: …")`; an unknown driver throws `\InvalidArgumentException`.
 
-`Connection::fromPdo(\PDO $pdo)` wraps an existing PDO — handy in tests.
+SQLite connections also run `PRAGMA foreign_keys = ON`, so foreign keys and `ON DELETE` / `ON UPDATE` actions are enforced as on MySQL and PostgreSQL (luany/database 1.8 or newer). This applies to the skeleton's connection too. Pass `'foreign_keys' => false` to opt out:
+
+```php
+$legacy = Connection::make(['driver' => 'sqlite', 'database' => 'legacy.sqlite', 'foreign_keys' => false]);
+```
+
+`Connection::fromPdo(\PDO $pdo)` wraps an existing PDO — handy in tests. It leaves the PDO's settings untouched, including SQLite's `foreign_keys` pragma.
 
 | Method | Description |
 | --- | --- |

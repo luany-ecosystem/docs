@@ -78,7 +78,7 @@ LOG_LEVEL=warning
 
 ## Exceções
 
-O [handler de erros](errors.md#reporte-de-exceções) regista no log todas as exceções reportadas, ao nível `error`, com a exceção no contexto. Os resultados HTTP esperados listados em `$dontReport` do Handler não são registados.
+O [handler de erros](errors.md#reporte-de-exceções) regista no log todas as exceções reportadas, ao nível `error`, com a exceção no contexto. Os resultados HTTP esperados listados em `$dontReport` do Handler (404, 405, `abort()`, erros de validação) e as falhas de `findOrFail()` não são registados.
 
 ## Usar outro logger
 

@@ -53,7 +53,7 @@ O `Kernel::boot()` é executado uma única vez, por esta ordem:
 | 5. `translator` | Regista o tradutor a partir de `app.locale` e das chaves relacionadas |
 | 6. `log` | Regista o logger em ficheiro PSR-3 |
 | 7. Resolver | Faz com que o router construa controllers e middleware através do container e chame as ações com [injeção nos métodos](controllers.md#injeção-nos-métodos) |
-| 8. Rotas | Faz require do `routes/http.php` e depois de todos os outros `routes/*.php`, por ordem alfabética |
+| 8. Rotas | Carrega a [cache de rotas](routing.md#usar-a-cache-no-kernel) `storage/cache/routes.php` quando existe; caso contrário, faz require do `routes/http.php` e depois de todos os outros `routes/*.php`, por ordem alfabética |
 | 9. Providers | Chama `boot()` em todos os providers registados |
 | 10. Validação | Liga as regras `unique` / `exists` ao binding `db`, se existir |
 
@@ -89,7 +89,7 @@ Em seguida, o `Kernel::handle()`:
 
 1. Passa o pedido pelo **middleware global** listado em `App\Http\Kernel::$middleware` (no skeleton: live reload e depois CSRF). O middleware global é executado em todos os pedidos, incluindo os que não correspondem a nenhuma rota.
 2. Entrega-o ao **router**, que procura a primeira rota cujo URI e método correspondem. Um URI correspondente com o método errado lança um 405; sem correspondência, lança um 404.
-3. Resolve os parâmetros da rota (incluindo o [model binding](routing.md#model-binding-nas-rotas)).
+3. Resolve os parâmetros da rota (incluindo o [model binding](routing.md#model-binding-nas-rotas)) e converte os declarados `int` / `float` na ação — um número inválido dá um 404.
 4. Executa o **middleware de rota** (primeiro o do grupo, depois o da própria rota).
 5. Chama a **ação** — uma closure ou um método de controller — resolvendo os argumentos através do container.
 6. Converte o valor devolvido numa `Response`: strings tornam-se HTML, arrays e objetos tornam-se JSON.
@@ -101,8 +101,8 @@ Qualquer exceção lançada durante os passos 1–6 é convertida pelo Kernel nu
 | Exceção | Resposta |
 | --- | --- |
 | `ValidationException` | 422 em JSON para clientes JSON; caso contrário, redirecionamento para trás com os erros em flash |
-| Exceções HTTP (`abort()`, 404, 405) para clientes JSON | JSON `{"message": "…"}` com o status correto |
-| Qualquer outra | Reportada e apresentada pelo `App\Exceptions\Handler` |
+| Exceções HTTP (`abort()`, 404, 405, `findOrFail()`) para clientes JSON | JSON `{"message": "…"}` com o status correto |
+| Qualquer outra | Reportada e apresentada pelo `App\Exceptions\Handler` — `renderJson()` para clientes JSON, `render()` nos restantes casos |
 
 Consulte [Tratamento de erros](errors.md).
 

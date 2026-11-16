@@ -27,7 +27,7 @@ public function show(SessionInterface $session): string
 }
 ```
 
-It starts on first use — requests that never touch the session do not create one. Session files are written to `storage/sessions` (created with `0700` permissions).
+It starts on first use — requests that never touch the session do not create one. Session files are written to `storage/sessions` (created with `0700` permissions), which the skeleton's `.gitignore` excludes — see [Security](security.md#sessions).
 
 ### Methods
 

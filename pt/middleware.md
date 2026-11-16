@@ -104,7 +104,7 @@ As instâncias não podem ser guardadas na [cache de rotas](routing.md#cache-de-
 
 ## Middleware PSR-15
 
-O middleware de rota também pode implementar `Psr\Http\Server\MiddlewareInterface`, passado como instância ou como nome de classe. O Luany converte o pedido para PSR-7 e de volta automaticamente:
+O middleware de rota e o global também podem implementar `Psr\Http\Server\MiddlewareInterface`, passado como instância ou como nome de classe. O Luany converte o pedido para PSR-7 e de volta automaticamente:
 
 ```php
 Route::get('/api/data', [ApiController::class, 'data'])
@@ -113,22 +113,28 @@ Route::get('/api/data', [ApiController::class, 'data'])
 
 A ponte precisa de uma implementação PSR-7: `nyholm/psr7` e `guzzlehttp/psr7` são detetados automaticamente. Consulte [Interoperabilidade PSR](psr.md).
 
-A lista global do Kernel só aceita middleware do Luany. Envolva um middleware PSR-15 em `Luany\Core\Psr\Psr15Middleware` para o usar globalmente:
+Na lista global do Kernel, o middleware PSR-15 é aceite tal como o middleware do Luany — o Kernel envolve-o em `Luany\Core\Psr\Psr15Middleware` por si. Indique-o pelo nome da classe, ou acrescente uma instância no construtor (o PHP não permite `new` no valor por omissão de uma propriedade):
 
 ```php
-use Luany\Core\Psr\Psr15Middleware;
 use Luany\Framework\Application;
 
 class Kernel extends BaseKernel
 {
+    protected array $middleware = [
+        CsrfMiddleware::class,
+        \Middlewares\ResponseTime::class,   // PSR-15, construído através do container
+    ];
+
     public function __construct(Application $app)
     {
         parent::__construct($app);
 
-        $this->middleware[] = new Psr15Middleware(new \Middlewares\ResponseTime());
+        $this->middleware[] = new \Middlewares\TrailingSlash(false);   // instância PSR-15 com opções
     }
 }
 ```
+
+As entradas PSR-15 precisam do `luany/core` 1.3 ou posterior. Uma entrada que não implemente nenhuma das interfaces faz falhar todos os pedidos com uma `RuntimeException` (um erro 500).
 
 ## CORS
 

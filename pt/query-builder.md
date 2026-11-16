@@ -247,4 +247,4 @@ $q->getBindings(); // ['%@example.com']
 $emails = $db->query('SELECT email FROM users WHERE active = ?', [1])->fetchColumn();
 ```
 
-> **Nota** `first()` define `LIMIT 1` no builder em que é chamado. Inicie uma nova query com `table()` em vez de reutilizar um builder depois de `first()`.
+> **Nota** `first()` deixa o builder inalterado (luany/database 1.8 ou mais recente): um `get()` posterior no mesmo builder continua a devolver todas as linhas. O mesmo se aplica a `first()` e `find()` nas [queries de modelos](models.md).

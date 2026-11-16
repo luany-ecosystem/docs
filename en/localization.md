@@ -63,7 +63,7 @@ The skeleton's `config/app.php` lists only English. Add every locale you ship:
 'supported_locales' => ['en', 'pt'],
 ```
 
-> **Warning** The default locale must be in `supported_locales`. Locales outside the list are rejected, and an unsupported default leaves the translator without an active locale.
+Locales outside `supported_locales` are rejected: `setLocale()` ignores them. List the default locale there too — if it is missing, the translator starts with the fallback locale when that one is supported, otherwise with the first supported locale.
 
 ## Detecting the locale per request
 
@@ -83,8 +83,8 @@ On each request it chooses the first supported locale from:
 
 1. the `app_locale` cookie — the user's explicit choice;
 2. the `Accept-Language` header — the browser preference, by quality (`pt-PT,pt;q=0.9,en;q=0.8` → `pt`; entries with `q=0` are ignored);
-3. the `APP_LOCALE` environment variable;
-4. `'en'`.
+3. the default locale — `config('app.locale')`, then the `APP_LOCALE` environment variable, the same setting the translator uses;
+4. `'en'`, when it is supported — otherwise the translator keeps its starting locale.
 
 Only the primary language subtag is used: `pt-BR` and `pt-PT` both select `pt`.
 

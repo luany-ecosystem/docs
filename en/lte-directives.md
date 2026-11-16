@@ -37,8 +37,8 @@ Every built-in LTE directive, grouped by purpose. The list matches `Luany\Lte\Co
 | `@section('name', $value)` | — | Inline section; `$value` is HTML-escaped. |
 | `@yield('name', $default = '')` | yes | Prints a section; the default is HTML-escaped. |
 | `@include('view', $data = [])` | yes | Renders a view with the parent's variables merged with `$data`. |
-| `@component('view', $data = [])` … `@endcomponent` | yes | Renders a component; inner content becomes `$slot`. |
-| `@slot('name')` … `@endslot` | yes | Named slot inside `@component`, exposed as `$name`. |
+| `@component('view', $data = [])` … `@endcomponent` | yes | Renders a component; inner content becomes `$slot` (an `HtmlString`). |
+| `@slot('name')` … `@endslot` | yes | Named slot inside `@component`, exposed as `$name` (an `HtmlString`). |
 
 Name arguments may be quoted strings, bare dotted names (`@extends(layouts.main)`) or any PHP expression (`@include($view)`). See [Layouts & Components](lte-layouts.md).
 
@@ -47,7 +47,7 @@ Name arguments may be quoted strings, bare dotted names (`@extends(layouts.main)
 | Directive | Args | Behaviour |
 | --- | --- | --- |
 | `@style` … `@endstyle` | — | Collects a `<style>` block (deduplicated). |
-| `@script` / `@script(defer)` … `@endscript` | — | Collects a `<script>` block; `defer` adds the attribute. |
+| `@script` / `@script(module, defer, async)` … `@endscript` | — | Collects a `<script>` block; `module` adds `type="module"`, `defer` / `async` add those attributes. |
 | `@styles` | — | Placeholder replaced by all collected styles after the full render. |
 | `@scripts` | — | Placeholder replaced by all collected scripts after the full render. |
 | `@push('name')` … `@endpush` | yes | Appends content to a named stack. |

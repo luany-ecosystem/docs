@@ -114,9 +114,9 @@ Component file `views/components/alert.lte`:
 ```lte
 <div class="alert alert-{{ $type }}" role="alert">
     @isset($title)
-        <strong>{!! $title !!}</strong>
+        <strong>{{ $title }}</strong>
     @endisset
-    {!! $slot !!}
+    {{ $slot }}
 </div>
 ```
 
@@ -134,13 +134,28 @@ Using it:
 
 | Variable in the component | Source |
 | --- | --- |
-| `$slot` | Default slot: everything outside named slots, trimmed. Always defined. |
-| `$title`, `$footer`, … | Named slots. Defined only when the caller provides them — guard with `@isset`. |
+| `$slot` | Default slot: everything outside named slots, trimmed, as an `HtmlString`. Always defined (empty when the caller passes no content). |
+| `$title`, `$footer`, … | Named slots, also `HtmlString`s. Defined only when the caller provides them — guard with `@isset`. |
 | `$type`, … | Data array passed as the second argument of `@component`. |
 
 A named slot overrides a data key with the same name, and `$slot` overrides both.
 
-> **Warning** Slot content is already-rendered HTML in a plain string. Print it with `{!! $slot !!}`; `{{ $slot }}` would escape it a second time.
+Slots hold already-rendered HTML wrapped in a `Luany\Lte\HtmlString` (see [Trusted HTML](lte-syntax.md#trusted-html-htmlable-and-htmlstring)), so `{{ $slot }}` prints them as-is instead of escaping them a second time. `{!! $slot !!}` works as well.
+
+An object is always truthy, so `@if($slot)` is true even when the slot is empty. Test the content with `isEmpty()` / `isNotEmpty()`, which treat empty or whitespace-only HTML as empty:
+
+```lte
+<div class="card">
+    @isset($header)
+        <header>{{ $header }}</header>
+    @endisset
+    @if($slot->isNotEmpty())
+        <div class="card-body">{{ $slot }}</div>
+    @endif
+</div>
+```
+
+> **Note** Changed in LTE 1.3. Slots used to be plain strings: `{{ $slot }}` escaped them a second time and `@if($slot)` was false for an empty slot. When upgrading, replace `@if($slot)` with `@if($slot->isNotEmpty())`; `{!! $slot !!}` needs no change.
 
 Components nest freely, and a component can include partials or other components. `@style` and `@script` blocks inside a component are collected once, however many times the component renders (see [Assets & Stacks](lte-assets.md)).
 

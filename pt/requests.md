@@ -74,6 +74,8 @@ if ($request->hasFile('avatar')) {
 }
 ```
 
+Verifique o tipo e o tamanho de um upload com as regras `file`, `image` e `mimes` antes de o guardar — consulte [Validação](validation.md#upload-de-ficheiros).
+
 ## Cabeçalhos, cookies e valores do servidor
 
 | Método | Descrição |

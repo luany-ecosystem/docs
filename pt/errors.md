@@ -10,7 +10,8 @@ Todas as exceções lançadas durante o tratamento de um pedido são apanhadas p
 | `HttpException` (`abort()`) | `{"message": "…"}` com o respetivo status e cabeçalhos | Apresentada pelo Handler |
 | Nenhuma rota correspondente | 404 `{"message": "Not Found"}` | Apresentada pelo Handler |
 | Método errado | 405 com cabeçalho `Allow` | Apresentada pelo Handler |
-| Qualquer outra | Reportada e apresentada pelo Handler | Reportada e apresentada pelo Handler |
+| `ModelNotFoundException` (`findOrFail()`, `firstOrFail()`) | 404 `{"message": "Not Found"}` | 404, apresentada pelo Handler |
+| Qualquer outra | Reportada e depois `Handler::renderJson()` | Reportada e depois `Handler::render()` |
 
 Um "cliente JSON" é um pedido cujo cabeçalho `Accept` contém `application/json`, ou um pedido AJAX (`X-Requested-With: XMLHttpRequest`).
 
@@ -45,7 +46,7 @@ $app->singleton(
 );
 ```
 
-Para cada exceção, o Kernel chama `report()` e depois `render()`.
+Para cada exceção, o Kernel chama `report()` e depois `render()` — ou [`renderJson()`](#apis-json) quando o pedido espera JSON.
 
 ### Apresentação
 
@@ -92,7 +93,7 @@ Depois crie `views/errors/403.lte`, `views/errors/419.lte` e assim por diante.
 
 | Método auxiliar | Devolve |
 | --- | --- |
-| `statusCodeFor($e)` | O status da `HttpException`, 422 para validação, 404 / 405 para routing, caso contrário 500 |
+| `statusCodeFor($e)` | O status da `HttpException`, 422 para validação, 404 / 405 para routing, 404 para `ModelNotFoundException`, caso contrário 500 |
 | `headersFor($e)` | `Allow` para 405, os cabeçalhos da `HttpException`, caso contrário `[]` |
 
 > **Aviso** Nunca ative o `APP_DEBUG` em produção. A página de debug revela caminhos de ficheiros, a mensagem da exceção e o stack trace.
@@ -110,7 +111,21 @@ protected array $dontReport = [
 ];
 ```
 
-> **Nota** O Handler do skeleton declara `protected array $dontReport = [];`, o que **substitui** essa lista — por isso os 404 e as chamadas a `abort()` ficam registados no log como erros. Copie a lista acima para o seu Handler para manter os erros HTTP esperados fora do log, e acrescente as suas próprias classes.
+A `ModelNotFoundException` do luany/database também nunca é reportada: um registo em falta é um 404, não um erro.
+
+Para ignorar mais exceções, volte a declarar a lista no seu Handler e mantenha as predefinidas:
+
+```php
+protected array $dontReport = [
+    \Luany\Framework\Exceptions\HttpException::class,
+    \Luany\Framework\Exceptions\ValidationException::class,
+    \Luany\Core\Exceptions\RouteNotFoundException::class,
+    \Luany\Core\Exceptions\MethodNotAllowedException::class,
+    \App\Exceptions\PaymentDeclinedException::class,
+];
+```
+
+> **Nota** Os projetos criados a partir de um skeleton anterior ao 1.4.2 declaram `protected array $dontReport = [];` em `app/Exceptions/Handler.php`, o que substitui a lista predefinida e regista no log cada 404 e cada `abort()` como erro. Apague essa linha.
 
 Sobreponha o `report()` para enviar as exceções para outro destino:
 
@@ -130,19 +145,33 @@ As exceções lançadas dentro do `report()` são ignoradas, para que um reporte
 
 ## APIs JSON
 
-Os erros HTTP e os erros de validação já são devolvidos em JSON aos clientes JSON. As outras exceções passam pelo `Handler::render()`, que não tem acesso ao pedido; se a sua API precisar de um 500 em JSON, verifique aí o cabeçalho `Accept`:
+Os pedidos que esperam JSON nunca recebem uma página de erro em HTML. Os erros HTTP e de validação usam o formato JSON do Kernel apresentado [acima](#como-as-exceções-se-tornam-respostas); todas as outras exceções são reportadas e depois apresentadas pelo `Handler::renderJson()`:
+
+| Status | Debug desligado | Debug ligado |
+| --- | --- | --- |
+| 4xx | `{"message": "Not Found"}` (a mensagem do `abort()` ou a frase de estado) | Acrescenta `exception`, `file`, `line`, `trace` |
+| 5xx | `{"message": "Server Error"}` | A mensagem real, mais `exception`, `file`, `line`, `trace` |
+
+```json
+{
+    "message": "Server Error"
+}
+```
+
+O status e os cabeçalhos vêm de `statusCodeFor()` e `headersFor()`. Sobreponha o `renderJson()` para mudar o formato da sua API:
 
 ```php
-public function render(\Throwable $e): Response
+public function renderJson(\Throwable $e): Response
 {
-    if (str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json')) {
-        return Response::json(['message' => $this->debug ? $e->getMessage() : 'Server Error'], $this->statusCodeFor($e));
-    }
-
-    return parent::render($e);
+    return Response::json([
+        'error' => [
+            'status'  => $this->statusCodeFor($e),
+            'message' => $this->debug ? $e->getMessage() : 'Something went wrong.',
+        ],
+    ], $this->statusCodeFor($e), $this->headersFor($e));
 }
 ```
 
 ## Quando o próprio handler falha
 
-Se nenhum Handler estiver associado, ou se o `render()` lançar uma exceção, o Kernel recorre a respostas simples: o status e a mensagem escapada da exceção HTTP, `405` com `Allow`, `404`, ou um 500 genérico (`{"message": "Server Error"}` para clientes JSON), e regista no log a exceção inesperada.
+Se nenhum Handler estiver associado, ou se o `render()` / `renderJson()` lançar uma exceção, o Kernel recorre a respostas simples: o status e a mensagem escapada da exceção HTTP, `405` com `Allow`, `404`, ou um 500 genérico (`{"message": "Server Error"}` para clientes JSON), e regista no log a exceção inesperada.

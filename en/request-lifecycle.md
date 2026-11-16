@@ -53,7 +53,7 @@ $kernel->terminate($request, $response);
 | 5. `translator` | Registers the translator from `app.locale` and friends |
 | 6. `log` | Registers the PSR-3 file logger |
 | 7. Resolver | Makes the router build controllers and middleware through the container and call actions with [method injection](controllers.md#method-injection) |
-| 8. Routes | Requires `routes/http.php`, then every other `routes/*.php` alphabetically |
+| 8. Routes | Loads the [route cache](routing.md#using-the-cache-in-the-kernel) `storage/cache/routes.php` when it exists; otherwise requires `routes/http.php`, then every other `routes/*.php` alphabetically |
 | 9. Providers | Calls `boot()` on every registered provider |
 | 10. Validation | Connects the `unique` / `exists` rules to the `db` binding, if one exists |
 
@@ -89,7 +89,7 @@ Because routes are loaded **before** providers boot, a provider's `boot()` metho
 
 1. Sends the request through the **global middleware** listed in `App\Http\Kernel::$middleware` (in the skeleton: live reload, then CSRF). Global middleware runs for every request, including ones that match no route.
 2. Passes it to the **router**, which finds the first route whose URI and method match. A matching URI with the wrong method throws a 405; no match throws a 404.
-3. Resolves route parameters (including [model bindings](routing.md#route-model-binding)).
+3. Resolves route parameters (including [model bindings](routing.md#route-model-binding)) and converts those declared `int` / `float` in the action — an invalid number is a 404.
 4. Runs the **route middleware** (group middleware first, then the route's own).
 5. Calls the **action** — a closure or controller method — resolving its arguments through the container.
 6. Converts the return value into a `Response`: strings become HTML, arrays and objects become JSON.
@@ -101,8 +101,8 @@ Any exception thrown during steps 1–6 is turned into a response by the Kernel:
 | Exception | Response |
 | --- | --- |
 | `ValidationException` | 422 JSON for JSON clients, otherwise a redirect back with errors flashed |
-| HTTP exceptions (`abort()`, 404, 405) for JSON clients | JSON `{"message": "…"}` with the right status |
-| Anything else | Reported and rendered by `App\Exceptions\Handler` |
+| HTTP exceptions (`abort()`, 404, 405, `findOrFail()`) for JSON clients | JSON `{"message": "…"}` with the right status |
+| Anything else | Reported and rendered by `App\Exceptions\Handler` — `renderJson()` for JSON clients, `render()` otherwise |
 
 See [Error Handling](errors.md).
 

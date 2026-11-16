@@ -27,7 +27,7 @@ public function show(SessionInterface $session): string
 }
 ```
 
-A sessão é iniciada na primeira utilização — os pedidos que nunca lhe tocam não criam nenhuma. Os ficheiros de sessão são escritos em `storage/sessions` (criada com permissões `0700`).
+A sessão é iniciada na primeira utilização — os pedidos que nunca lhe tocam não criam nenhuma. Os ficheiros de sessão são escritos em `storage/sessions` (criada com permissões `0700`), que o `.gitignore` do skeleton exclui — consulte [Segurança](security.md#sessões).
 
 ### Métodos
 

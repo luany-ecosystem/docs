@@ -62,6 +62,7 @@ As classes anónimas evitam colisões de nomes. As classes com nome continuam a 
 | --- | --- |
 | `luany migrate` | Executa todas as migrations pendentes como um novo lote. |
 | `luany migrate:rollback` | Reverte o último lote. |
+| `luany migrate:rollback --step=N` | Reverte as últimas N migrations, da mais recente para a mais antiga, independentemente do lote (luany/cli 1.6 e luany/database 1.8 ou mais recentes). |
 | `luany migrate:status` | Lista as migrations, indicando se foram executadas ou estão pendentes, e o respetivo lote. |
 | `luany migrate:fresh` | Elimina **todas** as tabelas e volta a executar todas as migrations. Pede confirmação; `--force` dispensa-a e `--seed` executa o `DatabaseSeeder` no fim. |
 
@@ -77,13 +78,15 @@ use Luany\Database\Migration\MigrationRunner;
 $runner = new MigrationRunner(app('db'), base_path('database/migrations'));
 
 $runner->run(fn (string $name, string $status) => print("[{$status}] {$name}\n"));
-$runner->rollback(steps: 2);
+$runner->rollback(steps: 2);   // últimos dois lotes
+$runner->rollbackLast(3);       // últimas três migrations, de qualquer lote
 ```
 
 | Método | Devolve |
 | --- | --- |
 | `run(?callable $output = null)` | Número de migrations executadas |
-| `rollback(?callable $output = null, int $steps = 1)` | Número de migrations revertidas |
+| `rollback(?callable $output = null, int $steps = 1)` | Número de migrations revertidas (os últimos `$steps` lotes) |
+| `rollbackLast(int $migrations, ?callable $output = null)` | Número de migrations revertidas (as últimas N, da mais recente para a mais antiga, independentemente do lote; lança `\InvalidArgumentException` abaixo de 1) |
 | `reset(?callable $output = null)` | Reverte todos os lotes |
 | `pending(): array` | Nomes ainda não executados |
 | `status(): array` | `[['name' => …, 'ran' => bool, 'batch' => ?int], …]` |
@@ -197,7 +200,7 @@ $table->foreign('team_id')->references('id')->on('teams')->onDelete('cascade');
 
 Os valores predefinidos são `ON DELETE RESTRICT ON UPDATE CASCADE`.
 
-> **Nota** O SQLite só aplica as chaves estrangeiras quando `PRAGMA foreign_keys = ON` está definido na ligação. A ligação não o ativa automaticamente.
+> **Nota** No SQLite, `Connection::make()` e os comandos `luany` ativam `PRAGMA foreign_keys = ON`, pelo que as restrições e as ações `ON DELETE` são aplicadas tal como no MySQL e no PostgreSQL. Para desativar, use `'foreign_keys' => false` (ver [Criar uma ligação](database.md#criar-uma-ligação)). O `migrate:fresh` desliga o pragma enquanto elimina as tabelas.
 
 ## Alterar tabelas
 

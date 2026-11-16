@@ -134,7 +134,7 @@ Os templates compilados são ficheiros PHP simples com o nome dado por um hash S
 | Aspeto | Comportamento |
 | --- | --- |
 | Localização | `storage/cache/views` numa aplicação Luany. Um `Engine` autónomo sem `$cachePath` usa uma pasta privada por utilizador (`sys_get_temp_dir()/lte_cache_<uid>`, modo `0700`) e recusa uma pasta que seja um symlink ou pertença a outro utilizador. |
-| Chave da cache | Versão do motor (`Engine::VERSION`, atualmente `1.2.0`) + nomes das diretivas próprias registadas + caminho da vista. Atualizar o LTE ou registar uma diretiva nunca reaproveita código desatualizado. |
+| Chave da cache | Versão do motor (`Engine::VERSION`, a versão do LTE instalada) + nomes das diretivas próprias registadas + caminho da vista. Atualizar o LTE ou registar uma diretiva nunca reaproveita código desatualizado. |
 | Atualidade | Com `autoReload` desativado, uma vista é recompilada quando o código-fonte é pelo menos tão recente como o ficheiro compilado (as edições no mesmo segundo são detetadas). Com `autoReload` ativo (`APP_DEBUG=true` no framework), todas as renderizações recompilam. |
 | Escritas atómicas | Cada compilação escreve um ficheiro temporário e move-o para o lugar com `rename()`, para que pedidos concorrentes nunca leiam um ficheiro escrito a meio. A OPcache é invalidada para o novo ficheiro. |
 

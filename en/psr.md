@@ -74,15 +74,18 @@ Class names are built through the container, so their constructor dependencies a
 
 > **Note** PSR-7 request *attributes* (`withAttribute()`) are not carried over to the Luany `Request`, so middleware that communicates through attributes (for example authentication middleware storing a user) cannot pass that value to your controller.
 
-The HTTP Kernel's global `$middleware` list accepts only Luany middleware. Wrap PSR-15 middleware explicitly there:
+## PSR-15 middleware in the Kernel
+
+The HTTP Kernel's global `$middleware` list accepts PSR-15 middleware too, as a class name or an instance, and wraps it the same way:
 
 ```php
-use Luany\Core\Psr\Psr15Middleware;
-
-$this->middleware[] = new Psr15Middleware(new \Middlewares\ResponseTime());
+protected array $middleware = [
+    CsrfMiddleware::class,
+    \Middlewares\ResponseTime::class,
+];
 ```
 
-See [Middleware](middleware.md#psr-15-middleware).
+It runs on every request, before routing. See [Middleware](middleware.md#psr-15-middleware).
 
 ## Running behind a PSR-15 server
 
@@ -161,6 +164,8 @@ while (frankenphp_handle_request($handle)) {
 ```
 
 > **Warning** In a long-running worker, the application, its singletons and static state (routes, validator settings) live for many requests. The framework's file session and helpers such as `validate()` read PHP's native session and `$_SERVER`, which a PSR-7 worker like RoadRunner does not populate. Stateless JSON APIs are the safe fit for PSR-7 workers; test session-based pages carefully before going to production.
+
+Uploads received through a PSR-7 worker are not PHP uploads, so the `file`, `image` and `mimes` rules reject them until you register a verifier with `Validator::setUploadedFileVerifier()` — see [Validation](validation.md#testing-and-psr-7-servers).
 
 ## PSR-11 containers
 

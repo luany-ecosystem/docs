@@ -87,6 +87,8 @@ app('csrf')->regenerate();
 
 > **Nota** Atrás de um proxy que termina o TLS, o PHP não vê HTTPS, pelo que a flag `secure` automática fica desligada. Defina `'secure' => true` em `config/session.php`.
 
+Os ficheiros de sessão contêm tokens CSRF e dados dos utilizadores. O `.gitignore` do skeleton exclui `storage/sessions/` (desde o skeleton 1.4.2); num projeto mais antigo, acrescente essa linha e remova os ficheiros de sessão já enviados com `git rm -r --cached storage/sessions`.
+
 ## Proxies de confiança
 
 `$request->ip()` e `$request->isSecure()` ignoram `X-Forwarded-For` e `X-Forwarded-Proto`, a menos que `REMOTE_ADDR` seja um proxy de confiança, para que os clientes não possam falsificar o seu endereço (o que anularia o rate limiting). Atrás de um load balancer, declare-o explicitamente como de confiança:
@@ -140,23 +142,27 @@ O `CorsMiddleware` recusa a combinação insegura de `['*']` com `allowCredentia
 
 ## Upload de ficheiros
 
-O validador não tem regras para ficheiros (`file`, `image`, `mimes`). Valide os uploads por si: verifique o código `error`, limite o tamanho, detete o tipo MIME a partir do conteúdo, gere o nome do ficheiro guardado e guarde os ficheiros fora de `public/`, a menos que se destinem a ser públicos.
+Valide os uploads com as regras `file`, `image` e `mimes` e um tamanho `max` em kilobytes (consulte [Validação](validation.md#upload-de-ficheiros)), gere por si o nome do ficheiro guardado e guarde os ficheiros fora de `public/`, a menos que se destinem a ser públicos:
 
 ```php
-$file = $request->file('avatar');
+$data = validate($request->body() + $request->files(), [
+    'avatar' => 'required|mimes:png,jpg|max:2048',   // PNG ou JPEG, até 2 MB
+]);
 
-if ($file === null || $file['error'] !== UPLOAD_ERR_OK || $file['size'] > 2 * 1024 * 1024) {
-    abort(422, 'Invalid upload.');
-}
-
+$file = $data['avatar'];
 $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
-if (!in_array($mime, ['image/png', 'image/jpeg'], true)) {
-    abort(422, 'Only PNG and JPEG images are allowed.');
-}
-
 $name = bin2hex(random_bytes(16)) . ($mime === 'image/png' ? '.png' : '.jpg');
+
 move_uploaded_file($file['tmp_name'], base_path('storage/uploads/' . $name));
 ```
+
+As regras de ficheiros foram concebidas para resistir a dados forjados:
+
+- **`is_uploaded_file()`** — o `tmp_name` tem de ser um ficheiro que o PHP recebeu neste pedido. Um corpo JSON ou um campo de formulário com o formato de uma entrada de `$_FILES` não consegue levar o validador a ler, aceitar ou dar informações sobre um ficheiro arbitrário do servidor, como `/etc/passwd` ou `.env`. Substitua a verificação com `Validator::setUploadedFileVerifier()` apenas em testes ou em workers PSR-7, e mantenha a substituta tão restritiva quanto possível.
+- **Deteção pelo conteúdo** — o tipo vem do conteúdo do ficheiro (`finfo`), não do cabeçalho `Content-Type` nem do nome de ficheiro enviados pelo cliente. Mantenha a extensão `fileinfo` ativa: sem ela, o validador recorre ao nome de ficheiro do cliente.
+- **Sem SVG em `image`** — os ficheiros SVG podem conter scripts. Aceite-os com `mimes:svg` apenas quando os sanitizar ou os servir com `Content-Disposition: attachment`.
+
+Um ficheiro que passa na validação pode ainda ter conteúdo nocivo; nunca guarde uploads em `public/` com um nome ou uma extensão escolhidos pelo cliente.
 
 ## Checklist
 
@@ -170,7 +176,8 @@ move_uploaded_file($file['tmp_name'], base_path('storage/uploads/' . $name));
 - [ ] HTTPS em todo o lado; cookie de sessão `secure` e HSTS ativados.
 - [ ] Proxies de confiança configurados quando atrás de um load balancer.
 - [ ] Rate limiting nas rotas de login, registo e reposição de palavra-passe.
-- [ ] Uploads validados e guardados fora de `public/`.
+- [ ] Uploads validados com `file` / `image` / `mimes` e `max`, e guardados fora de `public/`.
+- [ ] `storage/sessions/` e `.env` fora do controlo de versões.
 - [ ] Dependências atualizadas (`composer audit`).
 
 Consulte [Deploy](deployment.md) para o lado do servidor.

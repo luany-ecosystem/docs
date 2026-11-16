@@ -46,6 +46,8 @@ Route::get('/posts', [PostController::class, 'index']);
 Route::post('/posts', [PostController::class, 'store']);
 ```
 
+Um nome de controller sem namespace (`['PostController', 'index']`) é procurado primeiro em `App\Controllers\` e depois em `App\Http\Controllers\`. Prefira `PostController::class` com uma instrução `use`, para que o editor e a análise estática consigam seguir a referência.
+
 > **Nota** Mantenha o middleware fora dos controllers. Associe-o à rota ou ao Kernel — consulte [Middleware](middleware.md).
 
 ## Valores devolvidos
@@ -101,17 +103,20 @@ As assinaturas posicionais mais antigas continuam a funcionar: `show($request, $
 
 ### Tipos escalares
 
-Os parâmetros de rota chegam como strings. Um tipo escalar como `int $id` converte strings numéricas, mas um segmento não numérico (`/posts/abc`) provoca um `TypeError` (um erro 500). Aceite `string` e valide quando o segmento puder ser arbitrário:
+Os parâmetros de rota chegam como strings. Quando a ação declara `int` ou `float` (incluindo anuláveis), o router converte o segmento antes de a chamar; um segmento que não seja um número válido para esse tipo responde com **404 Not Found**, antes de o middleware de rota ser executado:
 
 ```php
-public function show(string $id): string
+Route::get('/posts/{id}', [PostController::class, 'show']);
+```
+
+```php
+public function show(int $id): string   // /posts/42 → 42; /posts/abc e /posts/4.2 → 404
 {
-    if (!ctype_digit($id)) {
-        abort(404);
-    }
     // ...
 }
 ```
+
+`int` aceita dígitos com sinal opcional, dentro do intervalo de inteiros do PHP; `float` aceita qualquer string numérica sem espaços à volta. Os outros tipos — `string`, sem tipo, ou uma união com um tipo não numérico — recebem a string original. Os parâmetros com [model binding](#model-binding) ficam a cargo do binding.
 
 ### Model binding
 

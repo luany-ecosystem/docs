@@ -53,7 +53,7 @@ A maioria dos comandos tem de ser executada dentro de um projeto Luany. A CLI so
 | `make:test` | Gera um teste PHPUnit |
 | `make:feature` | Gera uma funcionalidade CRUD completa |
 | `migrate` | Executa todas as migrations pendentes |
-| `migrate:rollback` | Reverte o último lote de migrations |
+| `migrate:rollback` | Reverte o último lote de migrations (`--step=N`: as últimas N migrations) |
 | `migrate:status` | Mostra o estado de todas as migrations |
 | `migrate:fresh` | Apaga todas as tabelas e volta a executar todas as migrations |
 | `db:seed` | Executa os seeders da base de dados |
@@ -134,7 +134,7 @@ Todos os geradores validam os nomes antes de escreverem o que quer que seja. Os 
 
 Se o ficheiro de destino já existir, o gerador não lhe toca e mostra um aviso (`make:seeder`, em vez disso, termina com erro).
 
-> **Aviso** `make:controller Admin/Post` coloca a classe no namespace `App\Controllers\Admin`, mas o stub estende `Controller` sem o importar. Acrescente `use App\Controllers\Controller;` aos controllers gerados em subpastas.
+Os controllers gerados em subpastas (`Admin/Post` → namespace `App\Controllers\Admin`) importam o `App\Controllers\Controller` base.
 
 ### make:migration
 
@@ -173,6 +173,7 @@ O primeiro argumento é um nome de vista com pontos (segmentos de letras, dígit
 |---|---|
 | `luany migrate` | Executa todas as migrations pendentes em `database/migrations` |
 | `luany migrate:rollback` | Reverte o último lote |
+| `luany migrate:rollback --step=N` | Reverte as últimas N migrations (da mais recente para a mais antiga, independentemente do lote) |
 | `luany migrate:status` | Tabela de migrations: executada ou não, e número do lote |
 | `luany migrate:fresh` | Apaga **todas** as tabelas e depois executa todas as migrations |
 | `luany db:seed` | Executa o `DatabaseSeeder` de `database/seeders` |
@@ -181,12 +182,14 @@ O primeiro argumento é um nome de vista com pontos (segmentos de letras, dígit
 |---|---|---|
 | `--force` | `migrate:fresh` | Salta o pedido de confirmação (obrigatório em scripts e CI) |
 | `--seed` | `migrate:fresh` | Executa o `DatabaseSeeder` depois de migrar |
+| `--step=N` / `--step N` | `migrate:rollback` | Reverte as últimas N migrations em vez do último lote (exige luany/database 1.8 ou mais recente) |
 | `--class=Name` / `--class Name` | `db:seed` | Executa um seeder específico em vez do `DatabaseSeeder` |
 
-`migrate:fresh` pergunta `This drops ALL tables. Continue? [y/N]` e, por omissão, cancela — também quando a entrada não é um terminal, por isso passe sempre `--force` em automatismos. Não existe a opção `--step`; `migrate:rollback` reverte sempre um lote inteiro.
+`migrate:fresh` pergunta `This drops ALL tables. Continue? [y/N]` e, por omissão, cancela — também quando a entrada não é um terminal, por isso passe sempre `--force` em automatismos. Sem `--step`, o `migrate:rollback` reverte um lote inteiro; com uma versão mais antiga do luany/database, `--step` termina com a indicação para executar `composer update luany/database`.
 
 ```bash
 luany migrate:fresh --seed --force
+luany migrate:rollback --step=2
 luany db:seed --class=UserSeeder
 ```
 
@@ -196,7 +199,7 @@ Os comandos de base de dados leem as mesmas definições que a aplicação, **se
 
 | Variável | Utilização | Predefinição da CLI |
 |---|---|---|
-| `DB_CONNECTION` | `sqlite`, `mysql` ou `pgsql` | `mysql` |
+| `DB_CONNECTION` | `sqlite`, `mysql` ou `pgsql` | `sqlite` |
 | `DB_NAME` | Nome da base de dados, ou caminho do ficheiro SQLite (relativo à raiz do projeto) | `database/database.sqlite` para SQLite, caso contrário `luany` |
 | `DB_HOST` / `DB_PORT` | Endereço do servidor | `127.0.0.1` / `3306` (`5432` para pgsql) |
 | `DB_USER` / `DB_PASS` | Credenciais | `root` (`postgres` para pgsql) / vazio |
@@ -209,7 +212,7 @@ Os valores são resolvidos por esta ordem:
 
 É a mesma precedência que a aplicação usa (o seu carregador de `.env` nunca sobrepõe variáveis existentes), pelo que a CLI comunica sempre com a mesma base de dados que a aplicação.
 
-> **Aviso** Quando `DB_CONNECTION` não está definida, a CLI recorre a `mysql` (para projetos criados antes de o SQLite passar a ser o predefinido), enquanto o `DatabaseServiceProvider` do skeleton recorre a `sqlite`. Defina sempre `DB_CONNECTION` explicitamente.
+> **Nota** As predefinições da CLI coincidem com as do `DatabaseServiceProvider` do skeleton (`sqlite`, ficheiro `database/database.sqlite`). Os projetos em MySQL ou PostgreSQL têm de definir `DB_CONNECTION` no `.env`, como a aplicação já exige. No SQLite, os comandos ativam `PRAGMA foreign_keys = ON`, tal como a aplicação, e o `db:seed` / `migrate*` entregam aos modelos a ligação da CLI, para que funcionem em seeders e migrations (ver [Seeders](seeding.md#usar-o-query-builder-e-os-modelos)).
 
 Se o `.env` existir mas não puder ser lido, o comando para com uma indicação sobre permissões. Se não houver `.env` nem nenhuma variável `DB_*` no ambiente, pede-lhe que execute `luany key:generate`.
 
@@ -259,12 +262,10 @@ Verifica o ambiente e — dentro de um projeto — o estado do projeto:
 
 | Âmbito | Verificações |
 |---|---|
-| Global | PHP ≥ 8.2; extensões `pdo`, `pdo_mysql`, `mbstring`, `openssl`, `json`; Composer; versão de `luany/cli` |
+| Global | PHP ≥ 8.2; extensões `pdo`, o driver PDO de `DB_CONNECTION` (`pdo_sqlite` por omissão), `mbstring`, `openssl`, `json`; Composer; versão de `luany/cli` |
 | Projeto | `.env`, `vendor/`, `vendor/luany/framework`, `database/migrations`, `APP_KEY`, `bootstrap/app.php`, `public/index.php`, `config/app.php` |
 | Armazenamento | `storage/cache/views` e `storage/logs` têm permissão de escrita |
 | Base de dados | Driver PDO instalado, ligação funcional (`from environment` quando as `DB_*` vêm de variáveis reais), tabela `_migrations` existe |
-
-> **Nota** O `doctor` verifica sempre `pdo_mysql`, por isso uma máquina só com SQLite mostra aí uma marca vermelha. A secção de base de dados verifica o driver que realmente utiliza.
 
 ### about
 
@@ -272,7 +273,7 @@ Verifica o ambiente e — dentro de um projeto — o estado do projeto:
 luany about
 ```
 
-Mostra o nome da aplicação, o ambiente, a flag de debug e o URL (lidos do `.env`), além das versões instaladas do PHP, `luany/framework`, `luany/core`, `luany/lte` (a partir do `composer.lock`) e `luany/cli`.
+Mostra o nome da aplicação, o ambiente, a flag de debug e o URL (primeiro das variáveis de ambiente reais, depois do `.env`, tal como o `env()` do framework), além das versões instaladas do PHP, `luany/framework`, `luany/core`, `luany/lte` (a partir do `composer.lock`) e `luany/cli`.
 
 ## Códigos de saída
 

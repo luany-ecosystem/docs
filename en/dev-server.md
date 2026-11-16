@@ -72,9 +72,7 @@ luany dev
 
 If Node.js or the packages are missing, `dev` stops with a clear message (`Required Node.js packages not installed: chokidar, ws — Run: npm install`). The skeleton's `package.json` also maps `npm run dev` to `luany dev`.
 
-If `.env` does not contain `APP_ENV=development`, `dev` prints a warning but still starts.
-
-> **Note** The warning only recognises `development`; the middleware also accepts `APP_ENV=local`, so you can ignore the warning in that case.
+If `APP_ENV` is neither `development` nor `local`, `dev` prints a warning but still starts. `APP_ENV` is read from the real environment first, then from `.env`.
 
 ### What is watched
 

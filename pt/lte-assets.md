@@ -8,13 +8,13 @@ Declare um bloco em qualquer lado — numa página, num partial, num componente:
 
 ```lte
 {{-- views/components/card.lte --}}
-<div class="card">{!! $slot !!}</div>
+<div class="card">{{ $slot }}</div>
 
 @style
     .card { padding: 1rem; border-radius: 8px; box-shadow: 0 1px 3px rgb(0 0 0 / .1); }
 @endstyle
 
-@script(defer)
+@script(module)
     document.querySelectorAll('.card').forEach(card => card.classList.add('ready'));
 @endscript
 ```
@@ -39,7 +39,7 @@ Resultado:
 .card { padding: 1rem; border-radius: 8px; box-shadow: 0 1px 3px rgb(0 0 0 / .1); }
 </style>
 ...
-<script defer>
+<script type="module">
 document.querySelectorAll('.card').forEach(card => card.classList.add('ready'));
 </script>
 ```
@@ -49,13 +49,37 @@ document.querySelectorAll('.card').forEach(card => card.classList.add('ready'));
 - **Marcadores.** `@styles` e `@scripts` compilam para marcadores em forma de comentário HTML. O motor só os substitui depois de a página *e* todos os níveis de layout terem sido avaliados, por isso os blocos registados por partials incluídos mais tarde no layout (barra de navegação, rodapé, mensagens flash) continuam a aparecer — mesmo quando `@styles` está no `<head>`.
 - **Sem duplicados.** Os blocos com conteúdo idêntico são mantidos uma única vez. Um componente renderizado cinquenta vezes contribui com o seu CSS uma só vez.
 - **Ordem.** Os blocos são impressos pela ordem em que foram registados pela primeira vez.
-- **Opções.** `@script(defer)` acrescenta `defer`. Não é suportado nenhum outro atributo.
+- **Opções.** `@script` aceita `module`, `defer` e `async`, separados por vírgulas (ver abaixo).
 - **Posicionamento.** Use `@styles` e `@scripts` no layout (ou na vista de topo). Cada um pode aparecer mais de uma vez; todas as ocorrências recebem o resultado completo.
 - **Por renderização.** A recolha é reiniciada no início de cada `render()` de topo.
 
 O conteúdo de `@style` / `@script` é copiado tal como está: `{{ }}` e as diretivas no interior continuam a funcionar, pelo que pode interpolar valores — mas lembre-se de que, como a eliminação de duplicados se baseia no conteúdo, cada valor diferente passa a contar como um bloco diferente.
 
 > **Dica** Prefira ficheiros estáticos (`<link href="{{ asset('css/app.css') }}">`) para tudo o que é partilhado entre páginas. Os blocos de assets brilham em regras pequenas e locais a um componente.
+
+### Opções de script
+
+| Opção | Output | Efeito |
+| --- | --- | --- |
+| `module` | `type="module"` | Módulo ES: diferido por omissão, com âmbito próprio, permite `import`. |
+| `defer` | `defer` | É executado depois de o documento ser analisado. |
+| `async` | `async` | É executado assim que estiver pronto. |
+
+```lte
+@script(module, async)
+    import { init } from '/js/charts.js';
+    init(document.querySelectorAll('[data-chart]'));
+@endscript
+```
+
+```html
+<script type="module" async>
+import { init } from '/js/charts.js';
+init(document.querySelectorAll('[data-chart]'));
+</script>
+```
+
+> **Nota** Os browsers só respeitam `defer` e `async` em scripts inline quando acompanhados de `module`: um `@script(defer)` simples imprime o atributo, mas o script continua a ser executado de imediato. Use `@script(module)` para código inline diferido. As opções desconhecidas são ignoradas. `module` e `async` exigem o LTE 1.3; as versões anteriores só aceitavam `defer`.
 
 ## Stacks
 

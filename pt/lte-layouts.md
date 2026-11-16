@@ -114,9 +114,9 @@ Ficheiro do componente `views/components/alert.lte`:
 ```lte
 <div class="alert alert-{{ $type }}" role="alert">
     @isset($title)
-        <strong>{!! $title !!}</strong>
+        <strong>{{ $title }}</strong>
     @endisset
-    {!! $slot !!}
+    {{ $slot }}
 </div>
 ```
 
@@ -134,13 +134,28 @@ Utilização:
 
 | Variável no componente | Origem |
 | --- | --- |
-| `$slot` | Slot predefinido: tudo o que está fora dos slots nomeados, sem espaços nas pontas. Está sempre definido. |
-| `$title`, `$footer`, … | Slots nomeados. Só estão definidos quando quem chama os fornece — proteja-os com `@isset`. |
+| `$slot` | Slot predefinido: tudo o que está fora dos slots nomeados, sem espaços nas pontas, como `HtmlString`. Está sempre definido (vazio quando quem chama não passa conteúdo). |
+| `$title`, `$footer`, … | Slots nomeados, também `HtmlString`. Só estão definidos quando quem chama os fornece — proteja-os com `@isset`. |
 | `$type`, … | Array de dados passado como segundo argumento de `@component`. |
 
 Um slot nomeado sobrepõe-se a uma chave de dados com o mesmo nome, e `$slot` sobrepõe-se a ambos.
 
-> **Aviso** O conteúdo de um slot é HTML já renderizado numa string simples. Imprima-o com `{!! $slot !!}`; `{{ $slot }}` escapá-lo-ia uma segunda vez.
+Os slots contêm HTML já renderizado, envolvido num `Luany\Lte\HtmlString` (ver [HTML de confiança](lte-syntax.md#html-de-confiança-htmlable-e-htmlstring)), pelo que `{{ $slot }}` os imprime tal como estão, em vez de os escapar uma segunda vez. `{!! $slot !!}` também funciona.
+
+Um objeto é sempre verdadeiro, por isso `@if($slot)` é verdadeiro mesmo quando o slot está vazio. Teste o conteúdo com `isEmpty()` / `isNotEmpty()`, que consideram vazio o HTML vazio ou só com espaços em branco:
+
+```lte
+<div class="card">
+    @isset($header)
+        <header>{{ $header }}</header>
+    @endisset
+    @if($slot->isNotEmpty())
+        <div class="card-body">{{ $slot }}</div>
+    @endif
+</div>
+```
+
+> **Nota** Alterado no LTE 1.3. Antes, os slots eram strings simples: `{{ $slot }}` escapava-os uma segunda vez e `@if($slot)` era falso para um slot vazio. Ao atualizar, substitua `@if($slot)` por `@if($slot->isNotEmpty())`; `{!! $slot !!}` não precisa de alterações.
 
 Os componentes podem ser aninhados livremente, e um componente pode incluir partials ou outros componentes. Os blocos `@style` e `@script` dentro de um componente são recolhidos uma única vez, independentemente de quantas vezes o componente é renderizado (ver [Assets e stacks](lte-assets.md)).
 
