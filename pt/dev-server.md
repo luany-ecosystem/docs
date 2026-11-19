@@ -18,6 +18,8 @@ O `serve` executa o servidor embutido do PHP com `public/` como raiz dos documen
 
 Pare-o com `Ctrl+C`. Use o `serve` quando não precisar de live reload ou não tiver o Node.js instalado.
 
+Os dois servidores encaminham os pedidos como o Apache ou o Nginx em produção: os ficheiros que existem em `public/` são servidos diretamente e todos os outros URIs vão para o `public/index.php` — incluindo URIs com ponto, como `/sitemap.xml` ou `/api/users.json` (luany/cli 1.6.1).
+
 ## luany dev
 
 ```bash
@@ -108,10 +110,11 @@ protected array $middleware = [
 ];
 ```
 
-O middleware não faz nada a menos que se verifiquem **ambas** as condições:
+O middleware não faz nada a menos que se verifiquem **as três** condições:
 
 - `APP_ENV` é `development` ou `local`;
-- o pedido vem da interface de loopback (`REMOTE_ADDR` é `::1` ou começa por `127.`).
+- o pedido vem da interface de loopback (`REMOTE_ADDR` é `::1` ou começa por `127.`);
+- o `luany dev` está a correr — exporta `LDE_WS_PORT` para o servidor PHP que arranca (luany/framework 1.5). Com `luany serve`, `php -S` ou um servidor web local, nada é injetado.
 
 Quando está ativo:
 

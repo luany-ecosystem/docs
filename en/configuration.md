@@ -26,7 +26,8 @@ DB_NAME=database/database.sqlite
 | `APP_NAME` | Application name (`config('app.name')`) |
 | `APP_ENV` | `development` or `production`. Live reload only runs in `development` (or `local`) |
 | `APP_DEBUG` | `true` shows the debug error page and recompiles changed views; always `false` in production |
-| `APP_URL` | Base URL used by `url()`, `route()` and `asset()` |
+| `APP_URL` | Base URL used by `url()` and `route()`; its path (sub-folder installs) also prefixes `asset()` |
+| `ASSET_URL` | Optional absolute base for `asset()` — a CDN, or full URLs in e-mails |
 | `APP_KEY` | Random key written by the installer and `luany key:generate` |
 | `APP_TIMEZONE` | Default PHP timezone |
 | `APP_LOCALE` | Default locale for [translations](localization.md) |
@@ -94,7 +95,8 @@ return [
 | `app.name` | Page titles in the skeleton layout |
 | `app.env` | Your own environment checks |
 | `app.debug` | Debug mode for LTE's `@dump` / `@dd` directives |
-| `app.url` | `url()`, `route()`, `asset()` (falls back to `APP_URL`) |
+| `app.url` | `url()`, `route()` (falls back to `APP_URL`) |
+| `app.asset_url` | `asset()` base (falls back to `ASSET_URL`; empty = root-relative) |
 | `app.timezone` | `date_default_timezone_set()` at boot (invalid names are ignored) |
 | `app.locale`, `app.fallback_locale`, `app.supported_locales` | The [translator](localization.md) |
 

@@ -117,7 +117,9 @@ route('posts.index', ['page' => 2]);        // http://localhost:8000/posts?page=
 
 ### `asset`
 
-`asset(string $path): string` — URL de um ficheiro em `public/assets`.
+`asset(string $path): string` — caminho de um ficheiro em `public/assets`, relativo à raiz do site: `asset('css/app.css')` dá `/assets/css/app.css` (ou `/app/assets/css/app.css` quando o `APP_URL` tem uma subpasta). As páginas mantêm o CSS e o JavaScript em qualquer host ou porta — um segundo `luany serve`, um endereço da rede local, um proxy.
+
+Defina `ASSET_URL` (ou `app.asset_url`) para uma base absoluta, por exemplo uma CDN ou links em emails: `ASSET_URL=https://cdn.example.com` dá `https://cdn.example.com/assets/css/app.css`. Requer luany/framework 1.5; as versões anteriores prefixam o `APP_URL`.
 
 ```lte
 <link rel="stylesheet" href="{{ asset('css/app.css') }}">
