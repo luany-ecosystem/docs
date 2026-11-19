@@ -58,6 +58,8 @@ A maioria dos comandos tem de ser executada dentro de um projeto Luany. A CLI so
 | `migrate:fresh` | Apaga todas as tabelas e volta a executar todas as migrations |
 | `db:seed` | Executa os seeders da base de dados |
 | `route:list` | Lista todas as rotas registadas |
+| `route:cache` | Guarda a tabela de rotas em cache para produção |
+| `route:clear` | Apaga a cache de rotas |
 | `view:check` | Valida todas as vistas LTE sem as renderizar |
 | `key:generate` | Gera e define a `APP_KEY` no `.env` |
 | `cache:clear` | Limpa a cache das vistas compiladas |
@@ -225,6 +227,15 @@ luany route:list
 ```
 
 Carrega `routes/http.php` e depois todos os outros ficheiros `routes/*.php` (por ordem alfabética) sem arrancar o framework, e mostra uma tabela com métodos, URIs, ações (`PostController@show` ou `Closure`) e nomes.
+
+### route:cache / route:clear
+
+```bash
+luany route:cache
+luany route:clear
+```
+
+O `route:cache` arranca a aplicação tal como um pedido, lê todos os ficheiros `routes/*.php` e grava a tabela de rotas em `storage/cache/routes.php` (o `routeCachePath()` do Kernel), que o Kernel HTTP passa a carregar em vez dos ficheiros de rotas. Reconstrói sempre a partir dos ficheiros de rotas e termina com o código 1, listando as rotas, quando uma ação é uma closure. O `route:clear` apaga o ficheiro. Consulte [Rotas](routing.md#usar-a-cache-no-kernel).
 
 ### view:check
 

@@ -233,31 +233,17 @@ A route table is cacheable only when every action and middleware survives `var_e
 
 ### Using the cache in the Kernel
 
-When `storage/cache/routes.php` exists, the HTTP Kernel loads the routes from it and **does not run the route files**. Generate it after loading the route files — for example with a small script run on deploy:
-
-```php
-<?php
-// bin/route-cache.php
-use Luany\Core\Routing\Route;
-use Luany\Framework\Http\Kernel;
-
-$app    = require __DIR__ . '/../bootstrap/app.php';
-$kernel = $app->make(Kernel::class);
-$path   = $kernel->routeCachePath();       // base_path('storage/cache/routes.php')
-
-Route::clearCache($path);                  // so boot() reads routes/*.php, not an old cache
-$kernel->boot();
-Route::cache($path);
-
-echo "Routes cached: {$path}\n";
-```
+When `storage/cache/routes.php` exists, the HTTP Kernel loads the routes from it and **does not run the route files**. Generate it with the CLI (luany/cli 1.7):
 
 ```bash
-php bin/route-cache.php
+luany route:cache    # boot the app, read every routes/*.php file, write the cache
+luany route:clear    # delete it — routes/*.php are read again
 ```
 
-- A cache file is used until it is deleted: regenerate it on every deploy and run `Route::clearCache()` (or delete the file) whenever routes change. Do not create it in development.
-- `Route::bind()` resolvers are closures and are not cached. When you use the cache, register them in a service provider's `boot()` method instead of a route file.
-- To change the location, override `protected string $routeCacheFile` in `App\Http\Kernel` (relative to the project root); set it to `''` to disable the cache.
+`route:cache` boots the application exactly like a request (service providers included), always rebuilds the table from the route files, and fails with the list of offending routes when an action is a closure.
 
-The CLI has no `route:cache` command. See [Deployment](deployment.md#routes).
+- A cache file is used until it is deleted: run `route:cache` on every deploy and `route:clear` whenever routes change. Do not create it in development.
+- `Route::bind()` resolvers are closures and are not cached. When you use the cache, register them in a service provider's `boot()` method instead of a route file.
+- To change the location, override `protected string $routeCacheFile` in `App\Http\Kernel` (relative to the project root); set it to `''` to disable the cache. `route:cache` follows it; `route:clear` removes the default `storage/cache/routes.php`.
+
+See [Deployment](deployment.md#routes).

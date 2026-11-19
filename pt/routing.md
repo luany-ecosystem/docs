@@ -233,31 +233,17 @@ O `Route::cache()` lança uma `RuntimeException` com a lista de todas as rotas p
 
 ### Usar a cache no Kernel
 
-Quando `storage/cache/routes.php` existe, o Kernel HTTP carrega as rotas a partir dele e **não executa os ficheiros de rotas**. Gere-o depois de carregar os ficheiros de rotas — por exemplo, com um pequeno script executado em cada deploy:
-
-```php
-<?php
-// bin/route-cache.php
-use Luany\Core\Routing\Route;
-use Luany\Framework\Http\Kernel;
-
-$app    = require __DIR__ . '/../bootstrap/app.php';
-$kernel = $app->make(Kernel::class);
-$path   = $kernel->routeCachePath();       // base_path('storage/cache/routes.php')
-
-Route::clearCache($path);                  // para que boot() leia routes/*.php e não uma cache antiga
-$kernel->boot();
-Route::cache($path);
-
-echo "Routes cached: {$path}\n";
-```
+Quando `storage/cache/routes.php` existe, o Kernel HTTP carrega as rotas a partir dele e **não executa os ficheiros de rotas**. Gere-o com a CLI (luany/cli 1.7):
 
 ```bash
-php bin/route-cache.php
+luany route:cache    # arranca a aplicação, lê todos os routes/*.php e grava a cache
+luany route:clear    # apaga-a — os routes/*.php voltam a ser lidos
 ```
 
-- Um ficheiro de cache é usado até ser apagado: volte a gerá-lo em cada deploy e execute `Route::clearCache()` (ou apague o ficheiro) sempre que as rotas mudarem. Não o crie em desenvolvimento.
-- Os resolvers de `Route::bind()` são closures e não vão para a cache. Quando usar a cache, registe-os no método `boot()` de um service provider em vez de num ficheiro de rotas.
-- Para mudar a localização, redefina `protected string $routeCacheFile` em `App\Http\Kernel` (relativo à raiz do projeto); defina-o como `''` para desativar a cache.
+O `route:cache` arranca a aplicação tal como um pedido (incluindo os service providers), reconstrói sempre a tabela a partir dos ficheiros de rotas e falha com a lista das rotas problemáticas quando uma ação é uma closure.
 
-A CLI não tem um comando `route:cache`. Consulte [Deploy](deployment.md#rotas).
+- Um ficheiro de cache é usado até ser apagado: execute `route:cache` em cada deploy e `route:clear` sempre que as rotas mudarem. Não o crie em desenvolvimento.
+- Os resolvers de `Route::bind()` são closures e não vão para a cache. Quando usar a cache, registe-os no método `boot()` de um service provider em vez de num ficheiro de rotas.
+- Para mudar a localização, redefina `protected string $routeCacheFile` em `App\Http\Kernel` (relativo à raiz do projeto); defina-o como `''` para desativar a cache. O `route:cache` segue essa definição; o `route:clear` remove o `storage/cache/routes.php` predefinido.
+
+Consulte [Deploy](deployment.md#rotas).
