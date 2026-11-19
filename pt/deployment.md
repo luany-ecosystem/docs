@@ -206,7 +206,7 @@ Se o TLS terminar num load balancer ou reverse proxy, o PHP vê HTTP simples vin
    ];
    ```
 
-Defina `APP_URL` com o URL público `https://`, para que `url()` e `asset()` gerem links corretos.
+Defina `APP_URL` com o URL público `https://`, para que `url()` e `route()` gerem links corretos (o `asset()` é relativo à raiz; defina `ASSET_URL` para servir os assets a partir de uma CDN).
 
 ## Checklist de deploy
 

@@ -206,7 +206,7 @@ If TLS terminates at a load balancer or reverse proxy, PHP sees plain HTTP from 
    ];
    ```
 
-Set `APP_URL` to the public `https://` URL so `url()` and `asset()` generate correct links.
+Set `APP_URL` to the public `https://` URL so `url()` and `route()` generate correct links (`asset()` is root-relative; set `ASSET_URL` to serve assets from a CDN).
 
 ## Deployment checklist
 

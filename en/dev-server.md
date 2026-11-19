@@ -18,6 +18,8 @@ luany serve 127.0.0.1 8080   # custom host and port
 
 Stop it with `Ctrl+C`. Use `serve` when you do not need live reload or do not have Node.js installed.
 
+Both servers route like Apache or Nginx in production: existing files under `public/` are served as-is, every other URI goes to `public/index.php` — including URIs with a dot such as `/sitemap.xml` or `/api/users.json` (luany/cli 1.6.1).
+
 ## luany dev
 
 ```bash
@@ -108,10 +110,11 @@ protected array $middleware = [
 ];
 ```
 
-The middleware does nothing unless **both** conditions hold:
+The middleware does nothing unless **all three** conditions hold:
 
 - `APP_ENV` is `development` or `local`;
-- the request comes from the loopback interface (`REMOTE_ADDR` is `::1` or starts with `127.`).
+- the request comes from the loopback interface (`REMOTE_ADDR` is `::1` or starts with `127.`);
+- `luany dev` is running — it exports `LDE_WS_PORT` to the PHP server it starts (luany/framework 1.5). Under `luany serve`, `php -S` or a local web server nothing is injected.
 
 When active, it:
 
