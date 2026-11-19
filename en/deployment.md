@@ -87,10 +87,10 @@ Enable OPcache in production; compiled templates are invalidated in OPcache when
 
 Without a cache, the HTTP Kernel loads `routes/http.php` and every other `routes/*.php` file on each request; with OPcache enabled this is cheap. When `storage/cache/routes.php` exists, the Kernel loads the route table from it instead.
 
-The CLI has no `route:cache` command. Generate the file in your deploy script, after `composer install`, with a script such as the `bin/route-cache.php` shown in [Routing](routing.md#using-the-cache-in-the-kernel):
+Generate it in your deploy script, after `composer install` (see [Routing](routing.md#using-the-cache-in-the-kernel)):
 
 ```bash
-php bin/route-cache.php
+luany route:cache
 ```
 
 The cache requires controller or `Route::view()` actions — `Route::cache()` throws and lists any closure route. A stale cache keeps serving the old routes, so regenerate it on **every** deploy and never ship one built from different route files. Keep it out of version control — the skeleton's `.gitignore` excludes `/storage/cache/routes.php` since 1.4.3 (add the line in older projects).

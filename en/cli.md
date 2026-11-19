@@ -58,6 +58,8 @@ Most commands must run inside a Luany project. The CLI walks up from the current
 | `migrate:fresh` | Drop all tables and re-run all migrations |
 | `db:seed` | Run database seeders |
 | `route:list` | List all registered routes |
+| `route:cache` | Cache the route table for production |
+| `route:clear` | Delete the route cache |
 | `view:check` | Validate all LTE views without rendering |
 | `key:generate` | Generate and set `APP_KEY` in `.env` |
 | `cache:clear` | Clear the compiled view cache |
@@ -225,6 +227,15 @@ luany route:list
 ```
 
 Loads `routes/http.php` and then every other `routes/*.php` file (alphabetically) without booting the framework, and prints a table of methods, URIs, actions (`PostController@show` or `Closure`) and names.
+
+### route:cache / route:clear
+
+```bash
+luany route:cache
+luany route:clear
+```
+
+`route:cache` boots the application like a request, reads every `routes/*.php` file and writes the route table to `storage/cache/routes.php` (the Kernel's `routeCachePath()`), which the HTTP Kernel then loads instead of the route files. It always rebuilds from the route files and exits with code 1, listing the routes, when an action is a closure. `route:clear` deletes the file. See [Routing](routing.md#using-the-cache-in-the-kernel).
 
 ### view:check
 
