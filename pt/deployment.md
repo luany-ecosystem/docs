@@ -47,6 +47,8 @@ Proteja o ficheiro:
 chmod 640 .env
 ```
 
+Em alternativa, envie para o repositório um [ficheiro de ambiente cifrado](configuration.md#ficheiros-de-ambiente-cifrados) e não guarde nenhum `.env` no servidor: o `.env.production.encrypted` vai com o código e só define `APP_ENV=production` e `LUANY_ENV_KEY_PRODUCTION` no ambiente do servidor (pool do PHP-FPM, unidade systemd, contentor) ou nos secrets do CI.
+
 ## Instalar as dependências
 
 Instale sem os pacotes de desenvolvimento e com um autoloader otimizado:

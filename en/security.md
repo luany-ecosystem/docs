@@ -177,7 +177,7 @@ A file that passes validation can still be harmful content; never store uploads 
 - [ ] Trusted proxies configured when behind a load balancer.
 - [ ] Rate limiting on login, registration and password reset routes.
 - [ ] Uploads validated with `file` / `image` / `mimes` and `max`, and stored outside `public/`.
-- [ ] `storage/sessions/` and `.env` not in version control.
+- [ ] `storage/sessions/` and `.env` not in version control; secrets shared through the repository only as [encrypted environment files](configuration.md#encrypted-environment-files), with the key kept outside it.
 - [ ] Dependencies up to date (`composer audit`).
 
 See [Deployment](deployment.md) for the server side.

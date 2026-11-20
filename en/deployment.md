@@ -47,6 +47,8 @@ Protect the file:
 chmod 640 .env
 ```
 
+Alternatively, commit an [encrypted environment file](configuration.md#encrypted-environment-files) and keep no `.env` on the server: deploy `.env.production.encrypted` with the code and set only `APP_ENV=production` and `LUANY_ENV_KEY_PRODUCTION` in the server environment (PHP-FPM pool, systemd unit, container) or CI secrets.
+
 ## Installing dependencies
 
 Install without development packages and with an optimized autoloader:

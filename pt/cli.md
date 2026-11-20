@@ -63,6 +63,10 @@ A maioria dos comandos tem de ser executada dentro de um projeto Luany. A CLI so
 | `view:check` | Valida todas as vistas LTE sem as renderizar |
 | `key:generate` | Gera e define a `APP_KEY` no `.env` |
 | `cache:clear` | Limpa a cache das vistas compiladas |
+| `env:encrypt` | Cifra o `.env` em `.env.{env}.encrypted` |
+| `env:decrypt` | Decifra um ficheiro de ambiente cifrado |
+| `env:edit` | Edita um ficheiro de ambiente cifrado no seu editor |
+| `env:set` | Define valores num ficheiro de ambiente cifrado |
 | `doctor` | Verifica o ambiente e o estado do projeto |
 | `about` | Mostra as versões do projeto e dos pacotes |
 | `list` | Lista todos os comandos disponíveis |
@@ -262,6 +266,26 @@ luany cache:clear
 ```
 
 Apaga os templates compilados em `storage/cache/views` e indica quantos ficheiros foram removidos.
+
+### env:encrypt / env:decrypt / env:edit / env:set
+
+```bash
+luany env:encrypt [--env=production] [--key=base64:…] [--force]
+luany env:decrypt [--env=production] [--key=base64:…] [--force]
+luany env:edit    [--env=production] [--key=base64:…]
+luany env:set CHAVE=VALOR [CHAVE=VALOR …] [--env=production] [--key=base64:…]
+```
+
+Gerem [ficheiros de ambiente cifrados](configuration.md#ficheiros-de-ambiente-cifrados) (requerem luany/framework 1.6, cuja cifra os comandos usam).
+
+| Comando | O que faz |
+|---|---|
+| `env:encrypt` | Cifra o `.env.{env}` (ou o `.env`) em `.env.{env}.encrypted`. Sem chave, gera uma e mostra-a uma única vez, com a variável a definir no servidor. Nunca substitui sem `--force`. |
+| `env:decrypt` | Volta a escrever o ficheiro em claro (permissões 600). Nunca substitui sem `--force`. |
+| `env:edit` | Abre o conteúdo decifrado no `$VISUAL` / `$EDITOR` (Bloco de Notas no Windows, senão nano ou vi) a partir de um ficheiro temporário privado, volta a cifrar e apaga o ficheiro temporário. |
+| `env:set` | Altera valores sem nunca escrever um ficheiro em claro. Valores com espaços, `#`, `$` ou aspas são citados para serem lidos exatamente como foram escritos. |
+
+A chave vem de `--key`; senão de `LUANY_ENV_KEY_{ENV}`; senão de `LUANY_ENV_KEY`.
 
 ### doctor
 
