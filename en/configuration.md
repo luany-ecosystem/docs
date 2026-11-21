@@ -45,9 +45,38 @@ Env::load($ROOT);
 Env::required(['APP_ENV', 'APP_URL']);
 ```
 
-- `Env::load()` does nothing if `.env` does not exist, and only runs once per process.
+- `Env::load()` reads `.env` when it exists. Without it, it decrypts an [encrypted environment file](#encrypted-environment-files) if there is one, and otherwise does nothing. It only runs once per process.
 - Variables already set in the real environment (server config, Docker, CI) **win over `.env`**: the file never overwrites them. In production you can skip `.env` entirely and set real environment variables.
 - `Env::required()` throws a `RuntimeException` listing every variable that is missing or empty.
+
+### Encrypted environment files
+
+Secrets can be committed with the code as `.env.{environment}.encrypted` (luany/framework 1.6, luany/cli 1.9). The file is useless without its key, which lives outside the repository — in the server environment or in CI secrets.
+
+```bash
+luany env:encrypt --env=production                    # .env.production → .env.production.encrypted
+luany env:set MAIL_PASSWORD=new-secret --env=production
+luany env:edit --env=production                       # opens it in your editor, encrypts it again
+```
+
+The first `env:encrypt` generates a key and prints it **once**: keep it in a password manager. On the server, set the environment and its key:
+
+```bash
+APP_ENV=production
+LUANY_ENV_KEY_PRODUCTION=base64:…        # or LUANY_ENV_KEY for every environment
+```
+
+When there is no `.env`, `Env::load()` picks `.env.{APP_ENV}.encrypted` (then `.env.encrypted`) and decrypts it **in memory** — nothing is written to disk.
+
+- A plain `.env` always wins, so local development is unchanged.
+- Real environment variables still win over the file's values.
+- A missing or wrong key stops the boot with a clear message instead of starting without configuration.
+- The file of one environment cannot be used for another: the environment name is part of the encryption.
+- The format is libsodium's XChaCha20-Poly1305 (authenticated encryption); a modified file is rejected.
+
+> **Note** The key cannot be `APP_KEY`: `APP_KEY` lives inside the file it would have to decrypt.
+
+> **Tip** The skeleton's `.gitignore` (since 1.5.1) ignores every plain `.env.*` file but keeps `.env.example` and the `*.encrypted` files. See the [env:\* commands](cli.md#envencrypt-envdecrypt-envedit-envset).
 
 ### Reading values
 

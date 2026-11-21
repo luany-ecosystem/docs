@@ -177,7 +177,7 @@ Um ficheiro que passa na validação pode ainda ter conteúdo nocivo; nunca guar
 - [ ] Proxies de confiança configurados quando atrás de um load balancer.
 - [ ] Rate limiting nas rotas de login, registo e reposição de palavra-passe.
 - [ ] Uploads validados com `file` / `image` / `mimes` e `max`, e guardados fora de `public/`.
-- [ ] `storage/sessions/` e `.env` fora do controlo de versões.
+- [ ] `storage/sessions/` e `.env` fora do controlo de versões; segredos partilhados pelo repositório só como [ficheiros de ambiente cifrados](configuration.md#ficheiros-de-ambiente-cifrados), com a chave guardada fora dele.
 - [ ] Dependências atualizadas (`composer audit`).
 
 Consulte [Deploy](deployment.md) para o lado do servidor.

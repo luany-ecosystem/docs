@@ -4,8 +4,8 @@ Pages live in `en/{slug}.md` and `pt/{slug}.md`; navigation and titles come from
 
 - Start with `# Title` (same as the manifest), then one or two sentences on what the page covers.
 - Use `##` / `###` for sections; the site builds the "On this page" outline from them.
-- Every code sample must work with the current releases: core 1.4, framework 1.5, lte 1.3,
-  database 1.8, cli 1.7, skeleton 1.5, VS Code extension 1.2. Check signatures in the package source — never invent an API.
+- Every code sample must work with the current releases: core 1.4, framework 1.6, lte 1.3,
+  database 1.8, cli 1.9, skeleton 1.5.1, VS Code extension 1.2. Check signatures in the package source — never invent an API.
 - Fence code with a language: ```php, ```lte (LTE templates), ```bash, ```env, ```json.
 - Link other pages with relative links: `[Routing](routing.md)`, `[Models](models.md#casts)`.
 - Callouts: a blockquote starting with **Note**, **Tip** or **Warning**:

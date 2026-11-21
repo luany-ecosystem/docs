@@ -63,6 +63,10 @@ Most commands must run inside a Luany project. The CLI walks up from the current
 | `view:check` | Validate all LTE views without rendering |
 | `key:generate` | Generate and set `APP_KEY` in `.env` |
 | `cache:clear` | Clear the compiled view cache |
+| `env:encrypt` | Encrypt `.env` into `.env.{env}.encrypted` |
+| `env:decrypt` | Decrypt an encrypted environment file |
+| `env:edit` | Edit an encrypted environment file in your editor |
+| `env:set` | Set values in an encrypted environment file |
 | `doctor` | Check the environment and project health |
 | `about` | Show project and package versions |
 | `list` | List all available commands |
@@ -262,6 +266,26 @@ luany cache:clear
 ```
 
 Deletes the compiled templates in `storage/cache/views` and prints how many files were removed.
+
+### env:encrypt / env:decrypt / env:edit / env:set
+
+```bash
+luany env:encrypt [--env=production] [--key=base64:…] [--force]
+luany env:decrypt [--env=production] [--key=base64:…] [--force]
+luany env:edit    [--env=production] [--key=base64:…]
+luany env:set KEY=VALUE [KEY=VALUE …] [--env=production] [--key=base64:…]
+```
+
+Manage [encrypted environment files](configuration.md#encrypted-environment-files) (needs luany/framework 1.6, whose cipher the commands use).
+
+| Command | What it does |
+|---|---|
+| `env:encrypt` | Encrypts `.env.{env}` (or `.env`) into `.env.{env}.encrypted`. Without a key it generates one and prints it once, with the variable to set on the server. Never overwrites without `--force`. |
+| `env:decrypt` | Writes the plain file back (permissions 600). Never overwrites without `--force`. |
+| `env:edit` | Opens the decrypted content in `$VISUAL` / `$EDITOR` (Notepad on Windows, else nano or vi) from a private temporary file, encrypts it again and removes the temporary file. |
+| `env:set` | Changes values without ever writing a plain file. Values with spaces, `#`, `$` or quotes are quoted so they are read back exactly. |
+
+The key comes from `--key`, else `LUANY_ENV_KEY_{ENV}`, else `LUANY_ENV_KEY`.
 
 ### doctor
 

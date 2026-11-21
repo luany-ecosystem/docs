@@ -45,9 +45,38 @@ Env::load($ROOT);
 Env::required(['APP_ENV', 'APP_URL']);
 ```
 
-- `Env::load()` não faz nada se o `.env` não existir, e só é executado uma vez por processo.
+- `Env::load()` lê o `.env` quando ele existe. Sem ele, decifra um [ficheiro de ambiente cifrado](#ficheiros-de-ambiente-cifrados), se houver, e caso contrário não faz nada. Só é executado uma vez por processo.
 - As variáveis já definidas no ambiente real (configuração do servidor, Docker, CI) **têm prioridade sobre o `.env`**: o ficheiro nunca as sobrepõe. Em produção pode dispensar o `.env` por completo e definir variáveis de ambiente reais.
 - `Env::required()` lança uma `RuntimeException` com a lista de todas as variáveis em falta ou vazias.
+
+### Ficheiros de ambiente cifrados
+
+Os segredos podem ir para o repositório com o código, como `.env.{ambiente}.encrypted` (luany/framework 1.6, luany/cli 1.9). O ficheiro é inútil sem a chave, que fica fora do repositório — no ambiente do servidor ou nos secrets do CI.
+
+```bash
+luany env:encrypt --env=production                    # .env.production → .env.production.encrypted
+luany env:set MAIL_PASSWORD=novo-segredo --env=production
+luany env:edit --env=production                       # abre no seu editor e volta a cifrar
+```
+
+O primeiro `env:encrypt` gera uma chave e mostra-a **uma única vez**: guarde-a num gestor de passwords. No servidor, defina o ambiente e a respetiva chave:
+
+```bash
+APP_ENV=production
+LUANY_ENV_KEY_PRODUCTION=base64:…        # ou LUANY_ENV_KEY para todos os ambientes
+```
+
+Quando não há `.env`, o `Env::load()` escolhe o `.env.{APP_ENV}.encrypted` (depois o `.env.encrypted`) e decifra-o **em memória** — nada é escrito em disco.
+
+- Um `.env` em claro tem sempre prioridade, por isso o desenvolvimento local não muda.
+- As variáveis de ambiente reais continuam a ter prioridade sobre os valores do ficheiro.
+- Uma chave em falta ou errada interrompe o arranque com uma mensagem clara, em vez de arrancar sem configuração.
+- O ficheiro de um ambiente não serve noutro: o nome do ambiente faz parte da cifra.
+- O formato é o XChaCha20-Poly1305 da libsodium (cifra autenticada); um ficheiro modificado é rejeitado.
+
+> **Nota** A chave não pode ser a `APP_KEY`: a `APP_KEY` vive dentro do ficheiro que teria de decifrar.
+
+> **Dica** O `.gitignore` do skeleton (desde a 1.5.1) ignora todos os ficheiros `.env.*` em claro, mas mantém o `.env.example` e os ficheiros `*.encrypted`. Consulte os [comandos env:\*](cli.md#envencrypt-envdecrypt-envedit-envset).
 
 ### Ler valores
 
