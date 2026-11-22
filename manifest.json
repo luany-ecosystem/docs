@@ -27,6 +27,7 @@
       { "slug": "lte-directives",    "title": { "en": "Directives Reference",     "pt": "Referência de diretivas" } },
       { "slug": "lte-assets",        "title": { "en": "Assets & Stacks",          "pt": "Assets e stacks" } },
       { "slug": "lte-custom",        "title": { "en": "Custom Directives",        "pt": "Diretivas próprias" } },
+      { "slug": "lte-portuguese",    "title": { "en": "Portuguese Directives",    "pt": "Diretivas em português" } },
       { "slug": "lte-errors",        "title": { "en": "Template Errors",          "pt": "Erros de template" } }
     ]},
     { "id": "database", "title": { "en": "Database", "pt": "Base de dados" }, "pages": [
