@@ -183,6 +183,32 @@ Form input always arrives as strings, so add `numeric` or `integer` to compare a
 'ends_at'   => 'required|date|after:starts_at',
 ```
 
+## Portuguese rule names
+
+Every rule also has a Portuguese name, accepted in any project (no package needed). Both languages can be mixed:
+
+```php
+validate($request->body(), [
+    'nome'  => 'obrigatorio|texto|max:120',
+    'idade' => 'required|inteiro|entre:18,99',
+]);
+```
+
+| English | Portuguese | English | Portuguese |
+|---|---|---|---|
+| `required` | `obrigatorio` | `in` / `not_in` | `em` / `nao_em` |
+| `nullable` | `opcional` | `between` | `entre` |
+| `sometimes` | `quando_presente` | `digits` | `digitos` |
+| `string` | `texto` | `confirmed` | `confirmado` |
+| `integer` / `numeric` | `inteiro` / `numerico` | `same` / `different` | `igual` / `diferente` |
+| `boolean` | `booleano` | `unique` / `exists` | `unico` / `existe` |
+| `array` | `lista` | `file` | `ficheiro` (or `arquivo`) |
+| `date` | `data` | `image` | `imagem` |
+| `after` / `before` | `depois` / `antes` | `mimes` | `tipos` |
+| `after_or_equal` / `before_or_equal` | `depois_ou_igual` / `antes_ou_igual` | `not_regex` | `nao_regex` |
+
+`email`, `url`, `min`, `max` and `regex` are the same in both languages. A rule you register with `Validator::extend()` under one of these names keeps its meaning. See [Programming in Portuguese](portuguese.md).
+
 ## File uploads
 
 `file`, `image` and `mimes` validate a `$_FILES`-style entry (`name`, `type`, `tmp_name`, `error`, `size`). Uploads are not part of `body()`, so add them to the data you validate:
