@@ -310,6 +310,46 @@ luany about
 
 Shows the application name, environment, debug flag and URL (real environment variables first, then `.env`, like the framework's `env()`), plus the installed versions of PHP, `luany/framework`, `luany/core`, `luany/lte` (from `composer.lock`) and `luany/cli`.
 
+## --json, --dry-run and message codes
+
+Two global flags (luany/cli 1.11+):
+
+```bash
+luany make:feature Post title:string --dry-run   # plan and diff of every file, nothing written
+luany route:list --json                          # machine-readable result
+```
+
+`--json` prints one envelope, format `luany.cli/1`:
+
+```json
+{
+  "schema": "luany.cli/1",
+  "ok": true,
+  "command": "make:model",
+  "cli_version": "1.12.0",
+  "dry_run": true,
+  "data": {},
+  "plan": [{ "op": "create", "path": "app/Models/Post.php", "applied": false, "diff": "--- /dev/null\n+++ b/app/Models/Post.php\n…" }],
+  "messages": [{ "code": "LUANY-MAKE-004", "level": "info", "text": "Would create app/Models/Post.php (dry run, nothing written)" }]
+}
+```
+
+On failure `ok` is `false`, the exit code is non-zero and `error` holds `code`, `message` and `hint`. `schema` is the format version: new fields keep it; removing or changing one moves it to `luany.cli/2`.
+
+| Command | `--dry-run` | `--json` data |
+|---|---|---|
+| `make:*` (including `make:feature`) | plan + diff of every file | `make:feature`: `model`, `table`, `fields`, `routes` |
+| `key:generate` | plans the `.env` change (never shows the key) | — |
+| `cache:clear`, `route:clear` | plans the deletions | `removed` |
+| `route:list` | — | `routes` |
+| `migrate:status` | — | `migrations` |
+| `view:check` | — | `views`, `diagnostics` (`file`, `line`, `column`, `message`) |
+| `about` | — | `app`, `versions` |
+
+Other commands refuse both flags (`LUANY-CLI-002` / `LUANY-CLI-003`) instead of running for real.
+
+Every message has a stable code (`LUANY-<AREA>-<NNN>`) that never changes between versions or languages. With `LUANY_DEV_LANGUAGE=pt` (environment or `.env`) the texts are in Portuguese — see [Programming in Portuguese](portuguese.md).
+
 ## Exit codes
 
 Commands exit with `0` on success and a non-zero code on errors: `1` for an unknown command, an invalid name or option, a command run outside a project or views with errors; an unexpected exception (for example a failing migration) ends with PHP's own non-zero code. Use them to fail CI jobs.

@@ -51,7 +51,8 @@
       { "slug": "psr",               "title": { "en": "PSR Interoperability",     "pt": "Interoperabilidade PSR" } },
       { "slug": "security",          "title": { "en": "Security",                 "pt": "Segurança" } },
       { "slug": "deployment",        "title": { "en": "Deployment",               "pt": "Deploy" } },
-      { "slug": "vscode",            "title": { "en": "VS Code Extension",        "pt": "Extensão do VS Code" } }
+      { "slug": "vscode",            "title": { "en": "VS Code Extension",        "pt": "Extensão do VS Code" } },
+      { "slug": "portuguese",        "title": { "en": "Programming in Portuguese", "pt": "Programar em português" } }
     ]}
   ]
 }

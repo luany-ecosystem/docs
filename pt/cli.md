@@ -310,6 +310,46 @@ luany about
 
 Mostra o nome da aplicação, o ambiente, a flag de debug e o URL (primeiro das variáveis de ambiente reais, depois do `.env`, tal como o `env()` do framework), além das versões instaladas do PHP, `luany/framework`, `luany/core`, `luany/lte` (a partir do `composer.lock`) e `luany/cli`.
 
+## --json, --dry-run e códigos das mensagens
+
+Duas flags globais (luany/cli 1.11+):
+
+```bash
+luany make:feature Post title:string --dry-run   # plano e diff de cada ficheiro, nada é escrito
+luany route:list --json                          # resultado legível por máquinas
+```
+
+O `--json` imprime um envelope, formato `luany.cli/1`:
+
+```json
+{
+  "schema": "luany.cli/1",
+  "ok": true,
+  "command": "make:model",
+  "cli_version": "1.12.0",
+  "dry_run": true,
+  "data": {},
+  "plan": [{ "op": "create", "path": "app/Models/Post.php", "applied": false, "diff": "--- /dev/null\n+++ b/app/Models/Post.php\n…" }],
+  "messages": [{ "code": "LUANY-MAKE-004", "level": "info", "text": "Would create app/Models/Post.php (dry run, nothing written)" }]
+}
+```
+
+Em caso de falha, `ok` é `false`, o código de saída é diferente de zero e `error` traz `code`, `message` e `hint`. O `schema` é a versão do formato: campos novos mantêm-na; remover ou mudar um campo passa a `luany.cli/2`.
+
+| Comando | `--dry-run` | Dados do `--json` |
+|---|---|---|
+| `make:*` (incluindo `make:feature`) | plano + diff de cada ficheiro | `make:feature`: `model`, `table`, `fields`, `routes` |
+| `key:generate` | planeia a alteração do `.env` (nunca mostra a chave) | — |
+| `cache:clear`, `route:clear` | planeia as remoções | `removed` |
+| `route:list` | — | `routes` |
+| `migrate:status` | — | `migrations` |
+| `view:check` | — | `views`, `diagnostics` (`file`, `line`, `column`, `message`) |
+| `about` | — | `app`, `versions` |
+
+Os outros comandos recusam as duas flags (`LUANY-CLI-002` / `LUANY-CLI-003`) em vez de correrem a sério.
+
+Cada mensagem tem um código estável (`LUANY-<ÁREA>-<NNN>`) que não muda entre versões nem línguas. Com `LUANY_DEV_LANGUAGE=pt` (no ambiente ou no `.env`) os textos ficam em português — veja [Programar em português](portuguese.md).
+
 ## Códigos de saída
 
 Os comandos terminam com `0` em caso de sucesso e com um código diferente de zero em caso de erro: `1` para um comando desconhecido, um nome ou opção inválidos, um comando executado fora de um projeto ou vistas com erros; uma exceção inesperada (por exemplo, uma migration que falha) termina com o código não nulo do próprio PHP. Use-os para fazer falhar jobs de CI.

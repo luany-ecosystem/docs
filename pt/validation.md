@@ -183,6 +183,32 @@ Os dados de formulário chegam sempre como strings, por isso acrescente `numeric
 'ends_at'   => 'required|date|after:starts_at',
 ```
 
+## Regras em português
+
+Todas as regras têm também um nome em português, aceite em qualquer projeto (sem instalar nada). As duas línguas podem misturar-se:
+
+```php
+validate($request->body(), [
+    'nome'  => 'obrigatorio|texto|max:120',
+    'idade' => 'required|inteiro|entre:18,99',
+]);
+```
+
+| Inglês | Português | Inglês | Português |
+|---|---|---|---|
+| `required` | `obrigatorio` | `in` / `not_in` | `em` / `nao_em` |
+| `nullable` | `opcional` | `between` | `entre` |
+| `sometimes` | `quando_presente` | `digits` | `digitos` |
+| `string` | `texto` | `confirmed` | `confirmado` |
+| `integer` / `numeric` | `inteiro` / `numerico` | `same` / `different` | `igual` / `diferente` |
+| `boolean` | `booleano` | `unique` / `exists` | `unico` / `existe` |
+| `array` | `lista` | `file` | `ficheiro` (ou `arquivo`) |
+| `date` | `data` | `image` | `imagem` |
+| `after` / `before` | `depois` / `antes` | `mimes` | `tipos` |
+| `after_or_equal` / `before_or_equal` | `depois_ou_igual` / `antes_ou_igual` | `not_regex` | `nao_regex` |
+
+`email`, `url`, `min`, `max` e `regex` são iguais nas duas línguas. Uma regra que registe com `Validator::extend()` com um destes nomes mantém o seu significado. Veja [Programar em português](portuguese.md).
+
 ## Upload de ficheiros
 
 `file`, `image` e `mimes` validam uma entrada no formato de `$_FILES` (`name`, `type`, `tmp_name`, `error`, `size`). Os uploads não fazem parte de `body()`, por isso acrescente-os aos dados que valida:
