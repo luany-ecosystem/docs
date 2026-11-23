@@ -8,6 +8,8 @@ Luany can be written in Portuguese end to end — views, framework API, validati
 | Framework API: `Modelo`, `Consulta`, `Rota`… | `composer require luany/pt` | luany/pt 1.0 |
 | Validation rules: `obrigatorio\|texto` | always on | framework 1.8 |
 | CLI messages | `LUANY_DEV_LANGUAGE=pt` | luany/cli 1.11 |
+| CLI commands: `luany criar:controlador`… | always on | luany/cli 1.13 |
+| Generated code in Portuguese | `LUANY_SYNTAX=pt` (+ `luany/pt` for PHP) | luany/cli 1.13 |
 
 ## Views
 
@@ -95,3 +97,23 @@ LUANY_DEV_LANGUAGE=pt
 ```
 
 Message codes (`LUANY-MAKE-003`) are the same in every language. `--json` and `--dry-run` work the same way — see [CLI](cli.md).
+
+## Commands and generators
+
+Every command has a Portuguese name, always available: `criar:controlador`, `criar:modelo`, `criar:migracao`, `criar:vista`, `criar:requisicao`, `criar:funcionalidade`, `migrar`, `migrar:estado`, `migrar:reverter`, `migrar:recriar`, `bd:semear`, `rota:listar`, `vista:verificar`, `chave:gerar`, `cache:limpar`, `env:cifrar`, `diagnostico`, `sobre`, `atualizar`… `luany list` shows them all when `LUANY_DEV_LANGUAGE=pt`.
+
+With `LUANY_SYNTAX=pt` the generators write Portuguese views; with `luany/pt` installed they write Portuguese PHP too. Field types can be Portuguese:
+
+```bash
+luany criar:funcionalidade Autor nome:texto bio:texto_longo? ativo:booleano papel_id:estrangeira
+```
+
+| File | Generated |
+|---|---|
+| `app/Models/Autor.php` | `class Autor extends Modelo`, `$tabela = 'autores'`, `pertenceA(Papel::class)` |
+| `app/Controllers/AutorControlador.php` | `vista()`, `validar()` with `obrigatorio\|texto`, `Autor::criar()` |
+| `database/migrations/…_create_autores_table.php` | `Esquema::para($pdo)->criar(…, function (Tabela $t) { $t->texto('nome'); … })` |
+| `views/pages/autores/*.lte` | `@estende`, `@secao`, `@listar`… and Portuguese texts |
+| `routes/autores.php` | `Rota::recurso('autores', AutorControlador::class)` |
+
+Table names use the Portuguese plural (`autor` → `autores`, `papel` → `papeis`, `cancao` → `cancoes`).
