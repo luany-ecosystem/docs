@@ -112,6 +112,36 @@ Route::get('/locale/{locale}', function (Request $request, string $locale) {
 <a href="{{ route('locale', ['locale' => 'pt']) }}">Português</a>
 ```
 
+## Regional locales
+
+A regional locale falls back to its language, then to the fallback locale: with `APP_LOCALE=pt_AO`, a key is looked up in `lang/pt_AO.php`, then `lang/pt.php`, then `lang/en.php`. Put only what differs in the regional file.
+
+Validation messages follow the same chain. The framework ships them in Portuguese (`pt`, with `pt_BR` overriding "ficheiro" → "arquivo"); any line can be overridden in your `lang/{locale}.php` with the same key, for example `'validation.required' => 'Preencha :field.'`.
+
+## Dates
+
+`format_date()` writes a date in the current locale:
+
+```lte
+{{ format_date($post->created_at) }}            {{-- 23/11/2026 --}}
+{{ format_date($post->created_at, 'long') }}    {{-- 23 de novembro de 2026 --}}
+```
+
+| Style | Portuguese | English |
+|---|---|---|
+| `short` (default) | `23/11/2026` | `2026-11-23` |
+| `medium` | `23 nov 2026` | `Nov 23, 2026` |
+| `long` | `23 de novembro de 2026` | `November 23, 2026` |
+| `full` | `segunda-feira, 23 de novembro de 2026` | `Monday, November 23, 2026` |
+| `time` | `14:05` | `14:05` |
+| `datetime` | `23/11/2026 14:05` | `2026-11-23 14:05` |
+
+Dates are shown in the app timezone (`APP_TIMEZONE`). Portuguese and English do not need the intl extension; other locales use it when it is installed.
+
+## Long-running servers
+
+Under PHP-FPM every request starts clean. On long-running servers (Swoole, RoadRunner, FrankenPHP workers) the translator is shared between requests: register `LocaleMiddleware` so each request sets its own locale — otherwise every request uses the default locale.
+
 ## The translator
 
 The translator is `Luany\Framework\Support\Translator`, bound as `translator`:
