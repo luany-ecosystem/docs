@@ -16,6 +16,8 @@
       { "slug": "validation",      "title": { "en": "Validation",            "pt": "Validação" } },
       { "slug": "csrf",            "title": { "en": "CSRF Protection",       "pt": "Proteção CSRF" } },
       { "slug": "session",         "title": { "en": "Session & Flash",       "pt": "Sessão e mensagens flash" } },
+      { "slug": "authentication",  "title": { "en": "Authentication",        "pt": "Autenticação" } },
+      { "slug": "mail",            "title": { "en": "Email",                 "pt": "Email" } },
       { "slug": "errors",          "title": { "en": "Error Handling",        "pt": "Tratamento de erros" } },
       { "slug": "logging",         "title": { "en": "Logging",               "pt": "Logging" } },
       { "slug": "localization",    "title": { "en": "Localization",          "pt": "Localização" } },
