@@ -112,6 +112,36 @@ Route::get('/locale/{locale}', function (Request $request, string $locale) {
 <a href="{{ route('locale', ['locale' => 'pt']) }}">Português</a>
 ```
 
+## Locales regionais
+
+Um locale regional recorre à sua língua e depois ao locale de recurso: com `APP_LOCALE=pt_AO`, uma chave é procurada em `lang/pt_AO.php`, depois em `lang/pt.php` e depois em `lang/en.php`. Ponha no ficheiro regional só o que muda.
+
+As mensagens de validação seguem a mesma cadeia. O framework traz-nas em português (`pt`, com o `pt_BR` a trocar "ficheiro" por "arquivo"); qualquer linha pode ser sobreposta no seu `lang/{locale}.php` com a mesma chave, por exemplo `'validation.required' => 'Preencha :field.'`.
+
+## Datas
+
+O `format_date()` escreve uma data no locale atual:
+
+```lte
+{{ format_date($post->created_at) }}            {{-- 23/11/2026 --}}
+{{ format_date($post->created_at, 'long') }}    {{-- 23 de novembro de 2026 --}}
+```
+
+| Estilo | Português | Inglês |
+|---|---|---|
+| `short` (omissão) | `23/11/2026` | `2026-11-23` |
+| `medium` | `23 nov 2026` | `Nov 23, 2026` |
+| `long` | `23 de novembro de 2026` | `November 23, 2026` |
+| `full` | `segunda-feira, 23 de novembro de 2026` | `Monday, November 23, 2026` |
+| `time` | `14:05` | `14:05` |
+| `datetime` | `23/11/2026 14:05` | `2026-11-23 14:05` |
+
+As datas são mostradas no fuso da aplicação (`APP_TIMEZONE`). O português e o inglês não precisam da extensão intl; os outros locales usam-na quando está instalada.
+
+## Servidores de longa duração
+
+Com PHP-FPM cada pedido começa do zero. Em servidores de longa duração (Swoole, RoadRunner, workers do FrankenPHP) o tradutor é partilhado entre pedidos: registe o `LocaleMiddleware` para cada pedido definir o seu locale — caso contrário todos os pedidos usam o locale por omissão.
+
 ## O tradutor
 
 O tradutor é o `Luany\Framework\Support\Translator`, registado como `translator`:
