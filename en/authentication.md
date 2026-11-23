@@ -100,6 +100,10 @@ $status = app('auth.passwords')->reset([
 // PasswordBroker::PASSWORD_RESET or PasswordBroker::INVALID_TOKEN
 ```
 
+When the account exists, the token and the email are made **after** the response is sent (PHP-FPM), so the response takes the same time whether or not the email exists. Without PHP-FPM (for example `php -S`) the client may wait for the email to be sent.
+
+Behind a load balancer or CDN, set `TRUSTED_PROXIES` in `.env` (IPs or CIDR ranges, comma-separated) so the per-IP limit counts the real client; otherwise everyone behind the proxy shares it. `X-Forwarded-For` from any other address is ignored.
+
 Tokens are stored only as a SHA-256 hash, work once, expire after 60 minutes, and stop working when a newer link is requested or the password changes in any other way. Requests are limited to 3 per email and 10 per IP every 15 minutes.
 
 ## Email verification
