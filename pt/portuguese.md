@@ -8,6 +8,8 @@ O Luany pode ser escrito em português de ponta a ponta — vistas, API do frame
 | API do framework: `Modelo`, `Consulta`, `Rota`… | `composer require luany/pt` | luany/pt 1.0 |
 | Regras de validação: `obrigatorio\|texto` | sempre ativas | framework 1.8 |
 | Mensagens da CLI | `LUANY_DEV_LANGUAGE=pt` | luany/cli 1.11 |
+| Comandos da CLI: `luany criar:controlador`… | sempre ativos | luany/cli 1.13 |
+| Código gerado em português | `LUANY_SYNTAX=pt` (+ `luany/pt` para o PHP) | luany/cli 1.13 |
 
 ## Vistas
 
@@ -95,3 +97,23 @@ LUANY_DEV_LANGUAGE=pt
 ```
 
 Os códigos das mensagens (`LUANY-MAKE-003`) são iguais em todas as línguas. O `--json` e o `--dry-run` funcionam da mesma forma — veja [CLI](cli.md).
+
+## Comandos e geradores
+
+Todos os comandos têm um nome em português, sempre disponível: `criar:controlador`, `criar:modelo`, `criar:migracao`, `criar:vista`, `criar:requisicao`, `criar:funcionalidade`, `migrar`, `migrar:estado`, `migrar:reverter`, `migrar:recriar`, `bd:semear`, `rota:listar`, `vista:verificar`, `chave:gerar`, `cache:limpar`, `env:cifrar`, `diagnostico`, `sobre`, `atualizar`… O `luany list` mostra-os todos com `LUANY_DEV_LANGUAGE=pt`.
+
+Com `LUANY_SYNTAX=pt` os geradores escrevem as vistas em português; com o `luany/pt` instalado escrevem também o PHP em português. Os tipos dos campos podem ser portugueses:
+
+```bash
+luany criar:funcionalidade Autor nome:texto bio:texto_longo? ativo:booleano papel_id:estrangeira
+```
+
+| Ficheiro | Gerado |
+|---|---|
+| `app/Models/Autor.php` | `class Autor extends Modelo`, `$tabela = 'autores'`, `pertenceA(Papel::class)` |
+| `app/Controllers/AutorControlador.php` | `vista()`, `validar()` com `obrigatorio\|texto`, `Autor::criar()` |
+| `database/migrations/…_create_autores_table.php` | `Esquema::para($pdo)->criar(…, function (Tabela $t) { $t->texto('nome'); … })` |
+| `views/pages/autores/*.lte` | `@estende`, `@secao`, `@listar`… e textos em português |
+| `routes/autores.php` | `Rota::recurso('autores', AutorControlador::class)` |
+
+Os nomes das tabelas usam o plural português (`autor` → `autores`, `papel` → `papeis`, `cancao` → `cancoes`).
